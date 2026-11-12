@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>KNOWBRIDGE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:wght@500;600&family=Public+Sans:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+  <h1>KNOWBRIDGE</h1>
+  <p>Turns a project’s files into evidence-linked claims. The AI proposes, code checks every quote, a reviewer approves, and each person sees only what their role may open. Demo data is invented.</p>
+  <div class="bar" id="loginBar">
+    <label for="roleSel">Sign in as</label>
+    <select id="roleSel">
+      <option value="reviewer">Reviewer</option>
+      <option value="developer">Incoming developer</option>
+      <option value="member">Incoming non-technical member</option>
+    </select>
+    <button class="b p" id="loginBtn">Sign in</button>
+    <span class="note" id="who"></span>
+    <button class="b hidden" id="logoutBtn">Sign out</button>
+  </div>
+  <nav id="tabs" role="tablist" aria-label="Handover steps"></nav>
+</header>
+
+<main>
+  <div id="welcome" class="card"><b>Sign in to start.</b> <span class="muted">Pick a demo role above. The Reviewer uploads sources, runs extraction and approves claims. The other two roles open the handover.</span></div>
+
+  <section id="s0">
+    <h2>Sources</h2>
+    <p class="muted">Each source lists which roles may open it. A claim is hidden from anyone who cannot open every source behind it.</p>
+    <div class="card wrapx"><table id="srcTable"></table></div>
+
+    <div class="card hidden" id="reviewerTools">
+      <b>Add a source</b>
+      <div class="formrow">
+        <input type="file" id="fileIn" accept=".txt,.md,.csv,.json" aria-label="Choose a file">
+      </div>
+      <div class="formrow" id="roleBoxes">
+        <span class="note">Also visible to:</span>
+        <label><input type="checkbox" value="developer"> Incoming developer</label>
+        <label><input type="checkbox" value="member"> Incoming non-technical member</label>
+      </div>
+      <div class="formrow">
+        <button class="b" id="uploadBtn">Upload source</button>
+        <button class="b" id="demoBtn">Load demo data</button>
+        <button class="b p" id="extractBtn">Extract claims</button>
+      </div>
+      <p class="note">Reviewers can always open every source. Supported: .txt, .md, .csv, .json (up to 300 KB).</p>
+      <div id="extractMsg" role="status"></div>
+    </div>
+  </section>
+
+  <section id="s1">
+    <h2>Review claims</h2>
+    <p class="muted">Select a claim to see the exact quote behind it. Only approved claims reach the handover.</p>
+    <div class="sum" id="sum"></div>
+    <div class="formrow"><button class="b" id="apprAll">Approve all verified</button></div>
+    <div class="grid">
+      <div id="claimList"></div>
+      <div class="card" id="panel" style="position:sticky;top:12px;align-self:start"></div>
+    </div>
+  </section>
+
+  <section id="s2">
+    <h2>Handover</h2>
+    <p class="muted" id="handSub"></p>
+    <div id="hand"></div>
+  </section>
+</main>
+<div class="toast" id="toast" role="status"></div>
+<script src="/static/script.js"></script>
+</body>
+</html>

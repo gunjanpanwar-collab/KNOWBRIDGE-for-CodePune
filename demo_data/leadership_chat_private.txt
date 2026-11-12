@@ -1,0 +1,5 @@
+[2026-09-02 21:14] Riya: Should we tell the club that the sponsor money is delayed?
+[2026-09-02 21:16] Dev: Not yet. Let's wait until the sponsor confirms the new date.
+[2026-09-02 21:20] Riya: Okay. Also the deployment key for the server is razorpay_deploy_key=rzp_test_DEMO1234567890
+[2026-09-02 21:22] Dev: Please move that to the password manager, don't leave it in chat.
+[2026-09-09 18:05] Riya: Karan keeps missing deadlines. I may take the checkout work back myself.

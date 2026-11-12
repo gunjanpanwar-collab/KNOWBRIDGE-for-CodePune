@@ -1,0 +1,14 @@
+[
+ {"type":"Decision","kind":"fact","statement":"The team switched from Stripe to Razorpay because Stripe did not support INR.","evidence":[{"source":"meeting_notes_12.md","quote":"Stripe does not support INR payouts for our club account."}]},
+ {"type":"Decision","kind":"fact","statement":"The Razorpay switch target was moved to 15 October because of exams.","evidence":[{"source":"meeting_notes_14.md","quote":"Revised target for the Razorpay switch: 15 October, because of exams."}]},
+ {"type":"Owner","kind":"fact","statement":"Karan owns the Razorpay checkout work.","evidence":[{"source":"tasks.csv","quote":"T1,Switch checkout to Razorpay,Karan,In progress,2026-10-15"}]},
+ {"type":"Owner","kind":"fact","statement":"Meera owns the mobile menu overlap fix.","evidence":[{"source":"tasks.csv","quote":"T2,Fix mobile menu overlap,Meera,To do,2026-09-30"}]},
+ {"type":"Blocker","kind":"gap","statement":"No one owns the confirmation email failure (issue #21).","evidence":[{"source":"tasks.csv","quote":"T3,Investigate confirmation email failure,,To do,"},{"source":"github_export.json","quote":"Confirmation email not sent for some users"}]},
+ {"type":"Risk","kind":"fact","statement":"Confirmation emails may fail mainly for college email addresses.","evidence":[{"source":"meeting_notes_14.md","quote":"Seems to happen with college email addresses."}]},
+ {"type":"Open question","kind":"gap","statement":"PR #14 (event email reminders) was reverted and no reason is recorded.","evidence":[{"source":"github_export.json","quote":"\"state\": \"reverted\""},{"source":"github_export.json","quote":"Riya: Reverting this for now."}]},
+ {"type":"Next action","kind":"gap","statement":"No one owns writing the deployment guide.","evidence":[{"source":"tasks.csv","quote":"T5,Write deployment guide,,To do,"}]},
+ {"type":"Risk","kind":"fact","statement":"Domain renewal (T4) was due on 31 August 2026 but is still marked To do.","evidence":[{"source":"tasks.csv","quote":"T4,Renew domain,Dev,To do,2026-08-31"}]},
+ {"type":"Contact","kind":"fact","statement":"Mr. Sharma at the college IT office handles domain and hosting issues.","evidence":[{"source":"meeting_notes_14.md","quote":"Contact for domain and hosting issues: the college IT office (Mr. Sharma)."}]},
+ {"type":"Contact","kind":"fact","statement":"Dev renews the domain every August.","evidence":[{"source":"meeting_notes_12.md","quote":"Dev renews the domain every August."}]},
+ {"type":"Risk","kind":"fact","statement":"Sponsor money is delayed and the club has not been told.","evidence":[{"source":"leadership_chat_private.txt","quote":"Not yet. Let's wait until the sponsor confirms the new date."}]}
+]

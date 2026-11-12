@@ -1,0 +1,16 @@
+{
+  "repo": "club-website",
+  "pull_requests": [
+    {"number": 9,  "title": "Add Razorpay checkout", "author": "Karan", "state": "open", "created": "2026-09-05",
+     "description": "Adds Razorpay checkout. Replaces Stripe."},
+    {"number": 11, "title": "Add dark mode toggle", "author": "Meera", "state": "merged", "created": "2026-08-20",
+     "description": "Adds a dark mode toggle to the navigation bar."},
+    {"number": 14, "title": "Add email reminders for events", "author": "Riya", "state": "reverted", "created": "2026-08-28",
+     "description": "Sends reminder emails 24h before events.",
+     "comments": ["Riya: Reverting this for now."]}
+  ],
+  "issues": [
+    {"number": 21, "title": "Confirmation email not sent for some users", "state": "open", "assignee": null, "created": "2026-08-18"},
+    {"number": 23, "title": "Mobile menu overlaps logo", "state": "open", "assignee": "Meera", "created": "2026-09-01"}
+  ]
+}
