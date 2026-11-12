@@ -1,214 +1,1088 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>TrailBlazers prototype</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:wght@500;600&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-:root{--bg:#f2f4f8;--card:#fff;--fg:#14213d;--mut:#5b667a;--bd:#d9dee8;--acc:#0f766e;--accfg:#fff;
---ok:#1b7a4b;--okbg:#e3f4ea;--inf:#2457a6;--infbg:#e4edfb;--con:#a15c00;--conbg:#fdf0d9;--mis:#b3261e;--misbg:#fbe5e3;--st:#6b3fa0;--stbg:#efe6f8;
-box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#0f1624;--card:#18223a;--fg:#e8edf7;--mut:#9aa6bd;--bd:#2c3957;--acc:#3fb8ac;--accfg:#06201d;
---ok:#6fd49c;--okbg:#14301f;--inf:#8db4f2;--infbg:#16294a;--con:#f0b45a;--conbg:#3a2a0e;--mis:#f29a93;--misbg:#3d1a18;--st:#c9a6ee;--stbg:#2b1d3f}}
-:root[data-theme="dark"]{color-scheme:dark;--bg:#0f1624;--card:#18223a;--fg:#e8edf7;--mut:#9aa6bd;--bd:#2c3957;--acc:#3fb8ac;--accfg:#06201d;
---ok:#6fd49c;--okbg:#14301f;--inf:#8db4f2;--infbg:#16294a;--con:#f0b45a;--conbg:#3a2a0e;--mis:#f29a93;--misbg:#3d1a18;--st:#c9a6ee;--stbg:#2b1d3f}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 "Public Sans",system-ui,sans-serif}
-h1,h2,h3{font-family:Newsreader,Georgia,serif;font-weight:600;margin:0}
-header{padding:20px 20px 0;max-width:1000px;margin:0 auto}
-header h1{font-size:28px}
-header p{margin:4px 0 14px;color:var(--mut);max-width:62ch}
-nav{display:flex;gap:4px;border-bottom:1px solid var(--bd);overflow-x:auto}
-nav button{background:none;border:0;border-bottom:3px solid transparent;color:var(--mut);font:500 15px "Public Sans",sans-serif;padding:10px 14px;cursor:pointer;white-space:nowrap}
-nav button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--acc)}
-main{max-width:1000px;margin:0 auto;padding:20px}
-section{display:none}section.on{display:block}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:16px;margin-bottom:14px}
-.row{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
-.muted{color:var(--mut)}
-.badge{display:inline-block;font-size:12.5px;font-weight:600;padding:1px 9px;border-radius:99px}
-.verified{background:var(--okbg);color:var(--ok)}.inferred{background:var(--infbg);color:var(--inf)}
-.conflicting{background:var(--conbg);color:var(--con)}.missing{background:var(--misbg);color:var(--mis)}.stated{background:var(--stbg);color:var(--st)}
-.chip{font-size:12.5px;color:var(--mut);border:1px solid var(--bd);border-radius:4px;padding:0 7px}
-button.b{font:500 14px "Public Sans",sans-serif;border:1px solid var(--bd);background:var(--card);color:var(--fg);padding:6px 12px;border-radius:6px;cursor:pointer}
-button.b.p{background:var(--acc);color:var(--accfg);border-color:var(--acc)}
-button.b:focus-visible,nav button:focus-visible,.claim:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
-button.b:disabled{opacity:.5;cursor:not-allowed}
-.grid{display:grid;grid-template-columns:1.3fr 1fr;gap:16px}
-@media(max-width:760px){.grid{grid-template-columns:1fr}}
-.claim{border-left:5px solid var(--bd);background:var(--card);border-radius:6px;padding:10px 12px;margin-bottom:8px;cursor:pointer;border-top:1px solid var(--bd);border-right:1px solid var(--bd);border-bottom:1px solid var(--bd)}
-.claim.verified{border-left-color:var(--ok)}.claim.inferred{border-left-color:var(--inf)}.claim.conflicting{border-left-color:var(--con)}.claim.missing{border-left-color:var(--mis)}.claim.stated{border-left-color:var(--st)}
-.claim.sel{outline:2px solid var(--acc)}
-.claim .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center}
-.state-approved{color:var(--ok);font-weight:600}.state-rejected{color:var(--mis);font-weight:600;text-decoration:none}
-.claim.rej .txt{text-decoration:line-through;color:var(--mut)}
-blockquote{margin:8px 0;padding:8px 12px;border-left:3px solid var(--acc);background:var(--bg);border-radius:0 6px 6px 0;font-family:Newsreader,Georgia,serif;font-size:16px}
-textarea,select{width:100%;font:15px "Public Sans",sans-serif;padding:8px;border:1px solid var(--bd);border-radius:6px;background:var(--card);color:var(--fg)}
-table{width:100%;border-collapse:collapse;font-size:14px}
-th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--bd);vertical-align:top}
-.wrapx{overflow-x:auto}
-.locked{border:1px dashed var(--bd);color:var(--mut);padding:10px 12px;border-radius:6px;margin-bottom:8px;background:transparent}
-.sum{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
-.note{font-size:13.5px;color:var(--mut)}
-h2{font-size:21px;margin-bottom:6px}h3{font-size:17px;margin:16px 0 6px}
-ol.plan{padding-left:20px;margin:6px 0}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:8px 16px;border-radius:6px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s}
-.toast.on{opacity:1}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>TrailBlazers prototype</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:wght@500;600&family=Public+Sans:wght@400;500;600&display=swap">
+
+  <style>
+    /* ======================================================================
+       1. THEME TOKENS
+       ====================================================================== */
+
+    /* Light theme (default) */
+    :root {
+      --bg: #f2f4f8;
+      --card: #fff;
+      --fg: #14213d;
+      --muted: #5b667a;
+      --border: #d9dee8;
+      --accent: #0f766e;
+      --accent-fg: #fff;
+
+      /* Status colours: text + background pairs */
+      --ok: #1b7a4b;       --ok-bg: #e3f4ea;
+      --info: #2457a6;     --info-bg: #e4edfb;
+      --conflict: #a15c00; --conflict-bg: #fdf0d9;
+      --missing: #b3261e;  --missing-bg: #fbe5e3;
+      --stated: #6b3fa0;   --stated-bg: #efe6f8;
+    }
+
+    /* Dark theme: automatic if the OS prefers dark, unless light is forced */
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        color-scheme: dark;
+        --bg: #0f1624;
+        --card: #18223a;
+        --fg: #e8edf7;
+        --muted: #9aa6bd;
+        --border: #2c3957;
+        --accent: #3fb8ac;
+        --accent-fg: #06201d;
+
+        --ok: #6fd49c;       --ok-bg: #14301f;
+        --info: #8db4f2;     --info-bg: #16294a;
+        --conflict: #f0b45a; --conflict-bg: #3a2a0e;
+        --missing: #f29a93;  --missing-bg: #3d1a18;
+        --stated: #c9a6ee;   --stated-bg: #2b1d3f;
+      }
+    }
+
+    /* Dark theme: when the user explicitly picks dark.
+       (Same values as above; CSS can't share one block between a media
+       query and a plain selector, so the duplication is intentional.) */
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #0f1624;
+      --card: #18223a;
+      --fg: #e8edf7;
+      --muted: #9aa6bd;
+      --border: #2c3957;
+      --accent: #3fb8ac;
+      --accent-fg: #06201d;
+
+      --ok: #6fd49c;       --ok-bg: #14301f;
+      --info: #8db4f2;     --info-bg: #16294a;
+      --conflict: #f0b45a; --conflict-bg: #3a2a0e;
+      --missing: #f29a93;  --missing-bg: #3d1a18;
+      --stated: #c9a6ee;   --stated-bg: #2b1d3f;
+    }
+
+
+    /* ======================================================================
+       2. BASE
+       ====================================================================== */
+
+    *,
+    :root {
+      box-sizing: border-box;
+    }
+
+    /* Keep content clear of phone notches / system bars */
+    :root {
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    html {
+      scroll-padding-top: env(safe-area-inset-top, 0px);
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font: 15px/1.55 "Public Sans", system-ui, sans-serif;
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      font-family: Newsreader, Georgia, serif;
+      font-weight: 600;
+    }
+    h2 { margin-bottom: 6px; font-size: 21px; }
+    h3 { margin: 16px 0 6px; font-size: 17px; }
+
+    blockquote {
+      margin: 8px 0;
+      padding: 8px 12px;
+      border-left: 3px solid var(--accent);
+      border-radius: 0 6px 6px 0;
+      background: var(--bg);
+      font-family: Newsreader, Georgia, serif;
+      font-size: 16px;
+    }
+
+    .muted { color: var(--muted); }
+    .note  { font-size: 13.5px; color: var(--muted); }
+    .note.flush { margin: 4px 0 0; }
+
+
+    /* ======================================================================
+       3. LAYOUT: header, tab navigation, sections
+       ====================================================================== */
+
+    header {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px 20px 0;
+    }
+    header h1 { font-size: 28px; }
+    header p {
+      max-width: 62ch;
+      margin: 4px 0 14px;
+      color: var(--muted);
+    }
+
+    nav {
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+      border-bottom: 1px solid var(--border);
+    }
+    nav button {
+      padding: 10px 14px;
+      border: 0;
+      border-bottom: 3px solid transparent;
+      background: none;
+      color: var(--muted);
+      font: 500 15px "Public Sans", sans-serif;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    nav button[aria-selected="true"] {
+      color: var(--fg);
+      border-bottom-color: var(--accent);
+    }
+
+    main {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* Only the active tab panel is shown */
+    section    { display: none; }
+    section.on { display: block; }
+
+    /* Two columns that collapse to one on small screens */
+    .grid {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 760px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    .sticky-panel {
+      position: sticky;
+      top: 12px;
+      align-self: start;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    .sum {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 0 0 14px;
+    }
+
+
+    /* ======================================================================
+       4. COMPONENTS
+       ====================================================================== */
+
+    /* --- Card --- */
+    .card {
+      margin-bottom: 14px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--card);
+    }
+    .ack-card { margin-top: 16px; }
+
+    /* --- Badges and chips --- */
+    .badge {
+      display: inline-block;
+      padding: 1px 9px;
+      border-radius: 99px;
+      font-size: 12.5px;
+      font-weight: 600;
+    }
+    .badge.total { background: var(--border); }
+
+    .chip {
+      padding: 0 7px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+
+    /* Status colours for badges */
+    .verified    { background: var(--ok-bg);       color: var(--ok); }
+    .inferred    { background: var(--info-bg);     color: var(--info); }
+    .conflicting { background: var(--conflict-bg); color: var(--conflict); }
+    .missing     { background: var(--missing-bg);  color: var(--missing); }
+    .stated      { background: var(--stated-bg);   color: var(--stated); }
+
+    /* --- Buttons --- */
+    button.b {
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--card);
+      color: var(--fg);
+      font: 500 14px "Public Sans", sans-serif;
+      cursor: pointer;
+    }
+    button.b.p {                      /* primary variant */
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--accent-fg);
+    }
+    button.b:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    /* --- Claim items --- */
+    .claim {
+      margin-bottom: 8px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-left: 5px solid var(--border);   /* overridden by status below */
+      border-radius: 6px;
+      background: var(--card);
+      cursor: pointer;
+    }
+    .claim.verified    { border-left-color: var(--ok); }
+    .claim.inferred    { border-left-color: var(--info); }
+    .claim.conflicting { border-left-color: var(--conflict); }
+    .claim.missing     { border-left-color: var(--missing); }
+    .claim.stated      { border-left-color: var(--stated); }
+
+    .claim.sel    { outline: 2px solid var(--accent); }
+    .claim.static { cursor: default; }
+
+    .claim .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      margin-top: 6px;
+    }
+
+    /* Review states */
+    .state-approved { color: var(--ok);      font-weight: 600; }
+    .state-rejected { color: var(--missing); font-weight: 600; }
+    .claim.rej .txt {
+      color: var(--muted);
+      text-decoration: line-through;
+    }
+
+    .evidence   { margin-top: 6px; }
+    .question   { margin: 8px 0; }
+    .answer-row { margin-top: 8px; }
+
+    /* --- Form fields --- */
+    textarea,
+    select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--card);
+      color: var(--fg);
+      font: 15px "Public Sans", sans-serif;
+    }
+
+    /* --- Keyboard focus ring (shared by all interactive elements) --- */
+    button.b:focus-visible,
+    nav button:focus-visible,
+    .claim:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* --- Table (wrap in .wrapx so it scrolls sideways on narrow screens) --- */
+    .wrapx { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    /* --- Placeholder for content the role can't open --- */
+    .locked {
+      margin-bottom: 8px;
+      padding: 10px 12px;
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+    }
+
+    /* --- Numbered plan list --- */
+    ol.plan {
+      margin: 6px 0;
+      padding-left: 20px;
+    }
+
+    /* --- Toast notification (fades in/out via the .on class) --- */
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+      transform: translateX(-50%);
+      padding: 8px 16px;
+      border-radius: 6px;
+      background: var(--fg);
+      color: var(--bg);
+      font-size: 14px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s;
+    }
+    .toast.on { opacity: 1; }
+  </style>
 </head>
+
 <body>
-<header>
-<h1>TrailBlazers</h1>
-<p>Prototype for the club website handover. It uses invented demo data and no live AI: the extraction step is pre-filled so you can test the review and permission flow.</p>
-<nav role="tablist" id="tabs"></nav>
-</header>
-<main>
-<section id="s0">
- <h2>Connect sources</h2>
- <p class="muted">Each source lists which roles may open it. A claim is hidden from anyone who cannot open all of its sources.</p>
- <div class="card wrapx"><table id="srcTable"></table></div>
- <div class="card"><b>Sensitive-data check</b><p class="note" style="margin:4px 0 0">One API key was found in leadership_chat_private.txt and masked as rzp_test_••••••••. Masked in every role, including reviewer.</p></div>
- <button class="b p" data-go="1">Review extracted claims</button>
-</section>
+  <header>
+    <h1>TrailBlazers</h1>
+    <p>
+      Prototype for the club website handover. It uses invented demo data and no
+      live AI: the extraction step is pre-filled so you can test the review and
+      permission flow.
+    </p>
+    <!-- Tab buttons are generated by the script below -->
+    <nav id="tabs" role="tablist" aria-label="Handover steps"></nav>
+  </header>
 
-<section id="s1">
- <h2>Review claims</h2>
- <p class="muted">Select a claim to see its evidence. Nothing reaches the handover until you approve it and publish a version.</p>
- <div class="sum" id="sum"></div>
- <div class="grid">
-  <div><div id="claimList"></div></div>
-  <div class="card" id="panel" style="position:sticky;top:12px;align-self:start"></div>
- </div>
- <div class="card">
-  <div class="row"><div><b>Version history</b><div class="note" id="verList">No versions yet.</div></div>
-  <div><button class="b" id="apprVer">Approve all verified</button> <button class="b p" id="pubBtn">Publish version</button></div></div>
- </div>
-</section>
+  <main>
 
-<section id="s2">
- <h2>Gap interview</h2>
- <p class="muted">The system found things the files cannot explain. Answers become new claims marked “stated”, never “verified”.</p>
- <div id="qs"></div>
-</section>
+    <!-- Step 1: Connect sources -->
+    <section id="s0">
+      <h2>Connect sources</h2>
+      <p class="muted">
+        Each source lists which roles may open it. A claim is hidden from anyone
+        who cannot open all of its sources.
+      </p>
 
-<section id="s3">
- <h2>Handover</h2>
- <div class="card">
-  <label for="role"><b>View as</b></label>
-  <select id="role"><option value="rev">Reviewer</option><option value="dev">Incoming developer</option><option value="non">Incoming non-technical member</option></select>
- </div>
- <div id="hand"></div>
-</section>
-</main>
-<div class="toast" id="toast" role="status"></div>
+      <div class="card wrapx">
+        <table id="srcTable"></table>
+      </div>
 
-<script>
-const ROLES={rev:'Reviewer',dev:'Incoming developer',non:'Incoming non-technical member'};
-const SRC={
- n12:{name:'meeting_notes_12.md',roles:['rev','dev','non']},
- n14:{name:'meeting_notes_14.md',roles:['rev','dev','non']},
- tasks:{name:'tasks.csv',roles:['rev','dev','non']},
- gh:{name:'github_export.json',roles:['rev','dev']},
- chat:{name:'leadership_chat_private.txt',roles:['rev']}};
-let claims=[
- {id:1,type:'Decision',text:'The team switched from Stripe to Razorpay because Stripe did not support INR.',status:'verified',ev:[{s:'n12',q:'Stripe does not support INR payouts for our club account.'}]},
- {id:2,type:'Decision',text:'The Razorpay switch deadline is unclear: 30 September in one source, 15 October in two others.',status:'conflicting',ev:[{s:'n12',q:'Deadline for the switch: 30 September.'},{s:'n14',q:'Revised target for the Razorpay switch: 15 October, because of exams.'},{s:'tasks',q:'T1,Switch checkout to Razorpay,Karan,In progress,2026-10-15'}]},
- {id:3,type:'Owner',text:'Karan owns the Razorpay checkout work.',status:'verified',ev:[{s:'tasks',q:'T1,Switch checkout to Razorpay,Karan,In progress'}]},
- {id:4,type:'Owner',text:'Meera owns the mobile menu overlap fix.',status:'verified',ev:[{s:'tasks',q:'T2,Fix mobile menu overlap,Meera,To do'}]},
- {id:5,type:'Blocker',text:'No one owns the confirmation email failure (issue #21).',status:'missing',ev:[{s:'tasks',q:'T3,Investigate confirmation email failure,,To do,'},{s:'gh',q:'"number": 21 … "assignee": null'}]},
- {id:6,type:'Risk',text:'Confirmation emails may fail mainly for college email addresses.',status:'inferred',ev:[{s:'n14',q:'Seems to happen with college email addresses.'}]},
- {id:7,type:'Open question',text:'PR #14 (event email reminders) was reverted and no reason is recorded.',status:'missing',ev:[{s:'gh',q:'"state": "reverted" … "Riya: Reverting this for now."'}]},
- {id:8,type:'Next action',text:'No one owns writing the deployment guide.',status:'missing',ev:[{s:'tasks',q:'T5,Write deployment guide,,To do,'}]},
- {id:9,type:'Contact',text:'Mr. Sharma at the college IT office handles domain and hosting issues.',status:'verified',ev:[{s:'n14',q:'Contact for domain and hosting issues: the college IT office (Mr. Sharma).'}]},
- {id:10,type:'Contact',text:'Dev renews the domain every August.',status:'verified',ev:[{s:'n12',q:'Dev renews the domain every August.'}]},
- {id:11,type:'Risk',text:'Sponsor money is delayed and the club has not been told.',status:'verified',ev:[{s:'chat',q:'Not yet. Let’s wait until the sponsor confirms the new date.'}]},
- {id:12,type:'Risk',text:'A deployment key (rzp_test_••••••••) was shared in chat. It should move to a password manager.',status:'verified',ev:[{s:'chat',q:'the deployment key for the server is razorpay_deploy_key=rzp_test_••••••••'}]}
-].map(c=>({...c,review:'pending'}));
-const QS=[
- {t:'Open question',q:'PR #14 (event email reminders) was reverted but no reason is recorded. What happened?'},
- {t:'Decision',q:'The Razorpay deadline appears as 30 September and 15 October. Which date is current?'},
- {t:'Owner',q:'Who should own the confirmation email bug (issue #21)?'}];
-let sel=null,versions=[],acks=[],nextId=100;
-const $=s=>document.querySelector(s);
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const label={verified:'Verified',inferred:'Inferred',conflicting:'Conflicting',missing:'Missing',stated:'Stated by leaver'};
-const canSee=(c,r)=>c.ev.every(e=>SRC[e.s].roles.includes(r));
-function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('on'),1800)}
+      <div class="card">
+        <strong>Sensitive-data check</strong>
+        <p class="note flush">
+          One API key was found in leadership_chat_private.txt and masked as
+          rzp_test_••••••••. Masked in every role, including reviewer.
+        </p>
+      </div>
 
-const TABS=['Connect','Review','Gap interview','Handover'];
-TABS.forEach((n,i)=>{const b=document.createElement('button');b.textContent=n;b.setAttribute('role','tab');b.onclick=()=>go(i);$('#tabs').append(b)});
-function go(i){document.querySelectorAll('section').forEach((s,j)=>s.classList.toggle('on',i===j));
- [...$('#tabs').children].forEach((b,j)=>b.setAttribute('aria-selected',i===j));
- if(i===1)renderReview();if(i===2)renderQs();if(i===3)renderHand();window.scrollTo(0,0)}
-document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(+b.dataset.go));
+      <button type="button" class="b p" data-go="1">Review extracted claims</button>
+    </section>
 
-$('#srcTable').innerHTML='<tr><th>Source</th><th>Who can open it</th></tr>'+Object.values(SRC).map(s=>`<tr><td>${s.name}</td><td>${s.roles.map(r=>`<span class="chip">${ROLES[r]}</span>`).join(' ')}</td></tr>`).join('');
+    <!-- Step 2: Review claims -->
+    <section id="s1">
+      <h2>Review claims</h2>
+      <p class="muted">
+        Select a claim to see its evidence. Nothing reaches the handover until
+        you approve it and publish a version.
+      </p>
 
-function renderReview(){
- const n=k=>claims.filter(c=>c.status===k).length;
- $('#sum').innerHTML=Object.keys(label).filter(k=>n(k)).map(k=>`<span class="badge ${k}">${n(k)} ${label[k].toLowerCase()}</span>`).join('')+`<span class="badge" style="background:var(--bd)">${claims.filter(c=>c.review==='approved').length} approved of ${claims.length}</span>`;
- $('#claimList').innerHTML=claims.map(c=>`<div class="claim ${c.status} ${c.review==='rejected'?'rej':''} ${sel===c.id?'sel':''}" tabindex="0" data-id="${c.id}">
-  <div class="txt">${esc(c.text)}</div>
-  <div class="meta"><span class="chip">${c.type}</span><span class="badge ${c.status}">${label[c.status]}</span>
-  <span class="state-${c.review}">${c.review==='pending'?'Needs review':c.review==='approved'?'Approved':'Rejected'}</span></div></div>`).join('');
- document.querySelectorAll('.claim').forEach(e=>{e.onclick=()=>{sel=+e.dataset.id;renderReview()};e.onkeydown=ev=>{if(ev.key==='Enter'){sel=+e.dataset.id;renderReview()}}});
- renderPanel();
- $('#verList').innerHTML=versions.length?versions.map(v=>`Version ${v.n}: ${v.items.length} approved claims, published ${v.time} by Reviewer`).join('<br>'):'No versions yet.';
-}
-function renderPanel(){
- const c=claims.find(x=>x.id===sel),p=$('#panel');
- if(!c){p.innerHTML='<b>Evidence</b><p class="muted">Select a claim to see the exact quote behind it and who can see it.</p>';return}
- p.innerHTML=`<b>Evidence</b>
- <label class="note" for="ed">Claim text (edit if wrong)</label>
- <textarea id="ed" rows="3">${esc(c.text)}</textarea>
- ${c.ev.length?c.ev.map(e=>`<blockquote>“${esc(e.q)}”</blockquote><div class="note">From ${SRC[e.s].name}. Visible to: ${SRC[e.s].roles.map(r=>ROLES[r]).join(', ')}</div>`).join(''):'<blockquote>Answer given by the departing person. Not yet checked against a source.</blockquote>'}
- ${c.status==='conflicting'?'<p class="note"><b>Conflict:</b> sources disagree. Confirm which one is current before approving.</p>':''}
- ${c.status==='missing'?'<p class="note"><b>Missing:</b> expected information is not in any source. The gap interview asks the leaver.</p>':''}
- <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
- <button class="b p" id="bA">Approve</button><button class="b" id="bS">Save edit</button><button class="b" id="bR">Reject</button></div>`;
- $('#bA').onclick=()=>{c.text=$('#ed').value.trim()||c.text;c.review='approved';renderReview()};
- $('#bS').onclick=()=>{c.text=$('#ed').value.trim()||c.text;renderReview();toast('Edit saved')};
- $('#bR').onclick=()=>{c.review='rejected';renderReview()};
-}
-$('#apprVer').onclick=()=>{claims.forEach(c=>{if(c.status==='verified'&&c.review==='pending')c.review='approved'});renderReview();toast('Verified claims approved')};
-$('#pubBtn').onclick=()=>{const items=claims.filter(c=>c.review==='approved').map(c=>({...c,ev:c.ev.map(e=>({...e}))}));
- if(!items.length){toast('Approve at least one claim first');return}
- versions.push({n:versions.length+1,items,time:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})});renderReview();toast('Published version '+versions.length)};
+      <div class="sum" id="sum"></div>
 
-function renderQs(){
- $('#qs').innerHTML=QS.map((q,i)=>`<div class="card"><span class="chip">${q.t}</span><p style="margin:8px 0"><b>${esc(q.q)}</b></p>
- <label class="note" for="a${i}">Riya’s answer</label><textarea id="a${i}" rows="2"></textarea>
- <div style="margin-top:8px"><button class="b p" data-q="${i}">Save answer</button> <span class="note" id="d${i}"></span></div></div>`).join('');
- document.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{const i=+b.dataset.q,v=$('#a'+i).value.trim();
-  if(!v){toast('Write an answer first');return}
-  claims.push({id:nextId++,type:QS[i].t,text:'Stated by Riya: '+v,status:'stated',ev:[],review:'pending'});
-  $('#d'+i).textContent='Saved as a claim awaiting review.';$('#a'+i).value='';b.disabled=true});
-}
+      <div class="grid">
+        <div id="claimList"></div>
+        <aside class="card sticky-panel" id="panel"></aside>
+      </div>
 
-const PLAN={
- rev:['Check every restricted claim before sharing.','Resolve the Razorpay deadline conflict.','Confirm who takes the three unowned items.'],
- dev:['Read the Razorpay decision and ask Karan which deadline holds.','Contact Mr. Sharma at the college IT office about domain and hosting.','Pick up the confirmation email bug, which has no owner.','Ask Riya why PR #14 was reverted.'],
- non:['Read the Razorpay decision to understand why payments changed.','Contact Mr. Sharma at the college IT office for domain and hosting questions.','Ask the project lead who now owns the email problem.']};
-const GROUPS=[['Decisions',['Decision']],['Ownership',['Owner']],['Risks and open items',['Risk','Blocker','Open question','Next action']],['Contacts',['Contact']]];
-function renderHand(){
- const r=$('#role').value,h=$('#hand'),v=versions[versions.length-1];
- if(!v){h.innerHTML='<div class="card"><b>No handover published yet.</b><p class="muted">Approve claims in the Review tab, then publish a version.</p><button class="b p" data-go="1">Go to review</button></div>';h.querySelector('[data-go]').onclick=()=>go(1);return}
- const mask=c=>c.ev.length?'':'';
- let out=`<div class="card"><h2>Your first week</h2><p class="note">Handover version ${v.n} for ${ROLES[r]}.</p><ol class="plan">${PLAN[r].map(x=>`<li>${x}</li>`).join('')}</ol></div>`;
- GROUPS.forEach(([title,types])=>{const items=v.items.filter(c=>types.includes(c.type));if(!items.length)return;
-  out+=`<h3>${title}</h3>`+items.map(c=>canSee(c,r)?
-   `<div class="claim ${c.status}" style="cursor:default"><div>${esc(c.text)}</div><div class="meta"><span class="badge ${c.status}">${label[c.status]}</span>${c.ev.map(e=>`<span class="chip" title="${esc(e.q)}">${SRC[e.s].name}</span>`).join('')}</div>${c.ev.length?`<details style="margin-top:6px"><summary class="note">Show evidence</summary>${c.ev.map(e=>`<blockquote>“${esc(e.q)}”</blockquote>`).join('')}</details>`:''}</div>`
-   :`<div class="locked">Restricted item. Ask the reviewer.</div>`).join('')});
- const done=acks.filter(a=>a.n===v.n&&a.r===r);
- out+=`<div class="card" style="margin-top:16px">${r==='rev'?'<span class="note">The reviewer view is for approving. Switch to an incoming role to acknowledge receipt.</span>':done.length?`<b>Acknowledged.</b> <span class="note">${ROLES[r]} acknowledged version ${v.n} at ${done[0].time}.</span>`:'<button class="b p" id="ack">Acknowledge receipt</button>'}</div>`;
- h.innerHTML=out;
- const a=$('#ack');if(a)a.onclick=()=>{acks.push({n:v.n,r,time:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})});renderHand();toast('Receipt recorded')};
-}
-$('#role').onchange=renderHand;
-go(0);
-</script>
+      <div class="card">
+        <div class="row">
+          <div>
+            <strong>Version history</strong>
+            <div class="note" id="verList">No versions yet.</div>
+          </div>
+          <div>
+            <button type="button" class="b" id="apprVer">Approve all verified</button>
+            <button type="button" class="b p" id="pubBtn">Publish version</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 3: Gap interview -->
+    <section id="s2">
+      <h2>Gap interview</h2>
+      <p class="muted">
+        The system found things the files cannot explain. Answers become new
+        claims marked “stated”, never “verified”.
+      </p>
+      <div id="qs"></div>
+    </section>
+
+    <!-- Step 4: Handover -->
+    <section id="s3">
+      <h2>Handover</h2>
+
+      <div class="card">
+        <label for="role"><strong>View as</strong></label>
+        <select id="role">
+          <option value="rev">Reviewer</option>
+          <option value="dev">Incoming developer</option>
+          <option value="non">Incoming non-technical member</option>
+        </select>
+      </div>
+
+      <div id="hand"></div>
+    </section>
+
+  </main>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    /* ====================================================================
+       TrailBlazers prototype
+       Demo data only. No live AI: extraction results are pre-filled.
+       ==================================================================== */
+
+
+    /* ====================================================================
+       1. DATA
+       ==================================================================== */
+
+    const ROLES = {
+      rev: 'Reviewer',
+      dev: 'Incoming developer',
+      non: 'Incoming non-technical member',
+    };
+
+    // Which roles may open each source file
+    const SOURCES = {
+      n12:   { name: 'meeting_notes_12.md',          roles: ['rev', 'dev', 'non'] },
+      n14:   { name: 'meeting_notes_14.md',          roles: ['rev', 'dev', 'non'] },
+      tasks: { name: 'tasks.csv',                    roles: ['rev', 'dev', 'non'] },
+      gh:    { name: 'github_export.json',           roles: ['rev', 'dev'] },
+      chat:  { name: 'leadership_chat_private.txt',  roles: ['rev'] },
+    };
+
+    const STATUS_LABELS = {
+      verified:    'Verified',
+      inferred:    'Inferred',
+      conflicting: 'Conflicting',
+      missing:     'Missing',
+      stated:      'Stated by leaver',
+    };
+
+    const REVIEW_LABELS = {
+      pending:  'Needs review',
+      approved: 'Approved',
+      rejected: 'Rejected',
+    };
+
+    // Each claim cites one or more pieces of evidence: { source, quote }
+    const claims = [
+      {
+        id: 1,
+        type: 'Decision',
+        text: 'The team switched from Stripe to Razorpay because Stripe did not support INR.',
+        status: 'verified',
+        evidence: [
+          { source: 'n12', quote: 'Stripe does not support INR payouts for our club account.' },
+        ],
+      },
+      {
+        id: 2,
+        type: 'Decision',
+        text: 'The Razorpay switch deadline is unclear: 30 September in one source, 15 October in two others.',
+        status: 'conflicting',
+        evidence: [
+          { source: 'n12',   quote: 'Deadline for the switch: 30 September.' },
+          { source: 'n14',   quote: 'Revised target for the Razorpay switch: 15 October, because of exams.' },
+          { source: 'tasks', quote: 'T1,Switch checkout to Razorpay,Karan,In progress,2026-10-15' },
+        ],
+      },
+      {
+        id: 3,
+        type: 'Owner',
+        text: 'Karan owns the Razorpay checkout work.',
+        status: 'verified',
+        evidence: [
+          { source: 'tasks', quote: 'T1,Switch checkout to Razorpay,Karan,In progress' },
+        ],
+      },
+      {
+        id: 4,
+        type: 'Owner',
+        text: 'Meera owns the mobile menu overlap fix.',
+        status: 'verified',
+        evidence: [
+          { source: 'tasks', quote: 'T2,Fix mobile menu overlap,Meera,To do' },
+        ],
+      },
+      {
+        id: 5,
+        type: 'Blocker',
+        text: 'No one owns the confirmation email failure (issue #21).',
+        status: 'missing',
+        evidence: [
+          { source: 'tasks', quote: 'T3,Investigate confirmation email failure,,To do,' },
+          { source: 'gh',    quote: '"number": 21 … "assignee": null' },
+        ],
+      },
+      {
+        id: 6,
+        type: 'Risk',
+        text: 'Confirmation emails may fail mainly for college email addresses.',
+        status: 'inferred',
+        evidence: [
+          { source: 'n14', quote: 'Seems to happen with college email addresses.' },
+        ],
+      },
+      {
+        id: 7,
+        type: 'Open question',
+        text: 'PR #14 (event email reminders) was reverted and no reason is recorded.',
+        status: 'missing',
+        evidence: [
+          { source: 'gh', quote: '"state": "reverted" … "Riya: Reverting this for now."' },
+        ],
+      },
+      {
+        id: 8,
+        type: 'Next action',
+        text: 'No one owns writing the deployment guide.',
+        status: 'missing',
+        evidence: [
+          { source: 'tasks', quote: 'T5,Write deployment guide,,To do,' },
+        ],
+      },
+      {
+        id: 9,
+        type: 'Contact',
+        text: 'Mr. Sharma at the college IT office handles domain and hosting issues.',
+        status: 'verified',
+        evidence: [
+          { source: 'n14', quote: 'Contact for domain and hosting issues: the college IT office (Mr. Sharma).' },
+        ],
+      },
+      {
+        id: 10,
+        type: 'Contact',
+        text: 'Dev renews the domain every August.',
+        status: 'verified',
+        evidence: [
+          { source: 'n12', quote: 'Dev renews the domain every August.' },
+        ],
+      },
+      {
+        id: 11,
+        type: 'Risk',
+        text: 'Sponsor money is delayed and the club has not been told.',
+        status: 'verified',
+        evidence: [
+          { source: 'chat', quote: 'Not yet. Let’s wait until the sponsor confirms the new date.' },
+        ],
+      },
+      {
+        id: 12,
+        type: 'Risk',
+        text: 'A deployment key (rzp_test_••••••••) was shared in chat. It should move to a password manager.',
+        status: 'verified',
+        evidence: [
+          { source: 'chat', quote: 'the deployment key for the server is razorpay_deploy_key=rzp_test_••••••••' },
+        ],
+      },
+    ].map(claim => ({ ...claim, review: 'pending' }));
+
+    // Questions for the departing person (gap interview)
+    const QUESTIONS = [
+      {
+        type: 'Open question',
+        question: 'PR #14 (event email reminders) was reverted but no reason is recorded. What happened?',
+      },
+      {
+        type: 'Decision',
+        question: 'The Razorpay deadline appears as 30 September and 15 October. Which date is current?',
+      },
+      {
+        type: 'Owner',
+        question: 'Who should own the confirmation email bug (issue #21)?',
+      },
+    ];
+
+    // "Your first week" checklist for each role
+    const PLAN = {
+      rev: [
+        'Check every restricted claim before sharing.',
+        'Resolve the Razorpay deadline conflict.',
+        'Confirm who takes the three unowned items.',
+      ],
+      dev: [
+        'Read the Razorpay decision and ask Karan which deadline holds.',
+        'Contact Mr. Sharma at the college IT office about domain and hosting.',
+        'Pick up the confirmation email bug, which has no owner.',
+        'Ask Riya why PR #14 was reverted.',
+      ],
+      non: [
+        'Read the Razorpay decision to understand why payments changed.',
+        'Contact Mr. Sharma at the college IT office for domain and hosting questions.',
+        'Ask the project lead who now owns the email problem.',
+      ],
+    };
+
+    // How claim types are grouped on the Handover tab
+    const HANDOVER_GROUPS = [
+      { title: 'Decisions',            types: ['Decision'] },
+      { title: 'Ownership',            types: ['Owner'] },
+      { title: 'Risks and open items', types: ['Risk', 'Blocker', 'Open question', 'Next action'] },
+      { title: 'Contacts',             types: ['Contact'] },
+    ];
+
+    // Extra explanation shown in the evidence panel for some statuses
+    const STATUS_NOTES = {
+      conflicting: '<strong>Conflict:</strong> sources disagree. Confirm which one is current before approving.',
+      missing:     '<strong>Missing:</strong> expected information is not in any source. The gap interview asks the leaver.',
+    };
+
+    const TAB_NAMES = ['Connect', 'Review', 'Gap interview', 'Handover'];
+
+
+    /* ====================================================================
+       2. STATE
+       ==================================================================== */
+
+    let selectedId = null;       // claim currently open in the evidence panel
+    let nextClaimId = 100;       // ids for claims created by the gap interview
+    const versions = [];         // published versions: { number, items, time }
+    const acknowledgements = []; // { version, role, time }
+
+
+    /* ====================================================================
+       3. HELPERS
+       ==================================================================== */
+
+    const $  = selector => document.querySelector(selector);
+    const $$ = selector => document.querySelectorAll(selector);
+
+    const escapeHtml = value =>
+      String(value).replace(/[&<>"]/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+      }[char]));
+
+    const timeNow = () =>
+      new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    const roleNames = roles => roles.map(role => ROLES[role]).join(', ');
+
+    // A claim is visible only if the role can open every source it cites
+    const canSee = (claim, role) =>
+      claim.evidence.every(e => SOURCES[e.source].roles.includes(role));
+
+    let toastTimer;
+    function toast(message) {
+      const el = $('#toast');
+      el.textContent = message;
+      el.classList.add('on');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('on'), 1800);
+    }
+
+
+    /* ====================================================================
+       4. NAVIGATION (tabs)
+       ==================================================================== */
+
+    function buildTabs() {
+      TAB_NAMES.forEach((name, index) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = name;
+        button.setAttribute('role', 'tab');
+        button.onclick = () => go(index);
+        $('#tabs').append(button);
+      });
+    }
+
+    // Tabs that need fresh content each time they are opened
+    const TAB_RENDERERS = {
+      1: renderReview,
+      2: renderQuestions,
+      3: renderHandover,
+    };
+
+    function go(index) {
+      $$('section').forEach((section, i) => section.classList.toggle('on', i === index));
+      [...$('#tabs').children].forEach((tab, i) => tab.setAttribute('aria-selected', i === index));
+      TAB_RENDERERS[index]?.();
+      window.scrollTo(0, 0);
+    }
+
+
+    /* ====================================================================
+       5. TAB 1: CONNECT SOURCES
+       ==================================================================== */
+
+    function renderSources() {
+      const rows = Object.values(SOURCES).map(source => `
+        <tr>
+          <td>${source.name}</td>
+          <td>${source.roles.map(role => `<span class="chip">${ROLES[role]}</span>`).join(' ')}</td>
+        </tr>`);
+
+      $('#srcTable').innerHTML =
+        '<tr><th>Source</th><th>Who can open it</th></tr>' + rows.join('');
+    }
+
+
+    /* ====================================================================
+       6. TAB 2: REVIEW CLAIMS
+       ==================================================================== */
+
+    function renderReview() {
+      renderSummary();
+      renderClaimList();
+      renderPanel();
+      renderVersions();
+    }
+
+    function renderSummary() {
+      const countWithStatus = status => claims.filter(c => c.status === status).length;
+      const approved = claims.filter(c => c.review === 'approved').length;
+
+      const statusBadges = Object.keys(STATUS_LABELS)
+        .filter(status => countWithStatus(status) > 0)
+        .map(status =>
+          `<span class="badge ${status}">${countWithStatus(status)} ${STATUS_LABELS[status].toLowerCase()}</span>`);
+
+      $('#sum').innerHTML =
+        statusBadges.join('') +
+        `<span class="badge total">${approved} approved of ${claims.length}</span>`;
+    }
+
+    function renderClaimList() {
+      $('#claimList').innerHTML = claims.map(claim => {
+        const classes = [
+          'claim',
+          claim.status,
+          claim.review === 'rejected' && 'rej',
+          selectedId === claim.id && 'sel',
+        ].filter(Boolean).join(' ');
+
+        return `
+          <div class="${classes}" tabindex="0" data-id="${claim.id}">
+            <div class="txt">${escapeHtml(claim.text)}</div>
+            <div class="meta">
+              <span class="chip">${claim.type}</span>
+              <span class="badge ${claim.status}">${STATUS_LABELS[claim.status]}</span>
+              <span class="state-${claim.review}">${REVIEW_LABELS[claim.review]}</span>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function renderPanel() {
+      const panel = $('#panel');
+      const claim = claims.find(c => c.id === selectedId);
+
+      if (!claim) {
+        panel.innerHTML = `
+          <strong>Evidence</strong>
+          <p class="muted">Select a claim to see the exact quote behind it and who can see it.</p>`;
+        return;
+      }
+
+      const note = STATUS_NOTES[claim.status];
+
+      panel.innerHTML = `
+        <strong>Evidence</strong>
+        <label class="note" for="ed">Claim text (edit if wrong)</label>
+        <textarea id="ed" rows="3">${escapeHtml(claim.text)}</textarea>
+        ${panelEvidenceHtml(claim)}
+        ${note ? `<p class="note">${note}</p>` : ''}
+        <div class="actions">
+          <button type="button" class="b p" id="bA">Approve</button>
+          <button type="button" class="b" id="bS">Save edit</button>
+          <button type="button" class="b" id="bR">Reject</button>
+        </div>`;
+
+      // Approving and saving both keep whatever the reviewer typed in the box
+      const saveEditedText = () => {
+        claim.text = $('#ed').value.trim() || claim.text;
+      };
+
+      $('#bA').onclick = () => {
+        saveEditedText();
+        claim.review = 'approved';
+        renderReview();
+      };
+      $('#bS').onclick = () => {
+        saveEditedText();
+        renderReview();
+        toast('Edit saved');
+      };
+      $('#bR').onclick = () => {
+        claim.review = 'rejected';
+        renderReview();
+      };
+    }
+
+    function panelEvidenceHtml(claim) {
+      if (!claim.evidence.length) {
+        return '<blockquote>Answer given by the departing person. Not yet checked against a source.</blockquote>';
+      }
+      return claim.evidence.map(e => `
+        <blockquote>“${escapeHtml(e.quote)}”</blockquote>
+        <div class="note">From ${SOURCES[e.source].name}. Visible to: ${roleNames(SOURCES[e.source].roles)}</div>`
+      ).join('');
+    }
+
+    function renderVersions() {
+      $('#verList').innerHTML = versions.length
+        ? versions
+            .map(v => `Version ${v.number}: ${v.items.length} approved claims, published ${v.time} by Reviewer`)
+            .join('<br>')
+        : 'No versions yet.';
+    }
+
+    function selectClaim(id) {
+      selectedId = id;
+      renderReview();
+    }
+
+    function approveAllVerified() {
+      claims.forEach(claim => {
+        if (claim.status === 'verified' && claim.review === 'pending') {
+          claim.review = 'approved';
+        }
+      });
+      renderReview();
+      toast('Verified claims approved');
+    }
+
+    function publishVersion() {
+      // Snapshot the approved claims so later edits don't change a published version
+      const items = claims
+        .filter(claim => claim.review === 'approved')
+        .map(claim => ({ ...claim, evidence: claim.evidence.map(e => ({ ...e })) }));
+
+      if (!items.length) {
+        toast('Approve at least one claim first');
+        return;
+      }
+
+      versions.push({ number: versions.length + 1, items, time: timeNow() });
+      renderReview();
+      toast(`Published version ${versions.length}`);
+    }
+
+
+    /* ====================================================================
+       7. TAB 3: GAP INTERVIEW
+       ==================================================================== */
+
+    function renderQuestions() {
+      $('#qs').innerHTML = QUESTIONS.map((q, i) => `
+        <div class="card">
+          <span class="chip">${q.type}</span>
+          <p class="question"><strong>${escapeHtml(q.question)}</strong></p>
+          <label class="note" for="a${i}">Riya’s answer</label>
+          <textarea id="a${i}" rows="2"></textarea>
+          <div class="answer-row">
+            <button type="button" class="b p" data-q="${i}">Save answer</button>
+            <span class="note" id="d${i}"></span>
+          </div>
+        </div>`).join('');
+
+      $$('[data-q]').forEach(button => {
+        button.onclick = () => saveAnswer(Number(button.dataset.q), button);
+      });
+    }
+
+    // An answer becomes a new claim marked "stated", never "verified"
+    function saveAnswer(index, button) {
+      const answer = $(`#a${index}`).value.trim();
+      if (!answer) {
+        toast('Write an answer first');
+        return;
+      }
+
+      claims.push({
+        id: nextClaimId++,
+        type: QUESTIONS[index].type,
+        text: `Stated by Riya: ${answer}`,
+        status: 'stated',
+        evidence: [],
+        review: 'pending',
+      });
+
+      $(`#d${index}`).textContent = 'Saved as a claim awaiting review.';
+      $(`#a${index}`).value = '';
+      button.disabled = true;
+    }
+
+
+    /* ====================================================================
+       8. TAB 4: HANDOVER
+       ==================================================================== */
+
+    function renderHandover() {
+      const role = $('#role').value;
+      const container = $('#hand');
+      const version = versions[versions.length - 1];
+
+      if (!version) {
+        container.innerHTML = `
+          <div class="card">
+            <strong>No handover published yet.</strong>
+            <p class="muted">Approve claims in the Review tab, then publish a version.</p>
+            <button type="button" class="b p" data-go="1">Go to review</button>
+          </div>`;
+        container.querySelector('[data-go]').onclick = () => go(1);
+        return;
+      }
+
+      container.innerHTML =
+        planCardHtml(role, version) +
+        HANDOVER_GROUPS.map(group => groupHtml(group, version, role)).join('') +
+        `<div class="card ack-card">${acknowledgementHtml(role, version)}</div>`;
+
+      const ackButton = $('#ack');
+      if (ackButton) {
+        ackButton.onclick = () => {
+          acknowledgements.push({ version: version.number, role, time: timeNow() });
+          renderHandover();
+          toast('Receipt recorded');
+        };
+      }
+    }
+
+    function planCardHtml(role, version) {
+      return `
+        <div class="card">
+          <h2>Your first week</h2>
+          <p class="note">Handover version ${version.number} for ${ROLES[role]}.</p>
+          <ol class="plan">${PLAN[role].map(step => `<li>${step}</li>`).join('')}</ol>
+        </div>`;
+    }
+
+    function groupHtml(group, version, role) {
+      const items = version.items.filter(claim => group.types.includes(claim.type));
+      if (!items.length) return '';
+
+      const cards = items.map(claim =>
+        canSee(claim, role)
+          ? handoverClaimHtml(claim)
+          : '<div class="locked">Restricted item. Ask the reviewer.</div>');
+
+      return `<h3>${group.title}</h3>${cards.join('')}`;
+    }
+
+    function handoverClaimHtml(claim) {
+      const sourceChips = claim.evidence
+        .map(e => `<span class="chip" title="${escapeHtml(e.quote)}">${SOURCES[e.source].name}</span>`)
+        .join('');
+
+      const evidenceToggle = claim.evidence.length
+        ? `<details class="evidence">
+             <summary class="note">Show evidence</summary>
+             ${claim.evidence.map(e => `<blockquote>“${escapeHtml(e.quote)}”</blockquote>`).join('')}
+           </details>`
+        : '';
+
+      return `
+        <div class="claim ${claim.status} static">
+          <div>${escapeHtml(claim.text)}</div>
+          <div class="meta">
+            <span class="badge ${claim.status}">${STATUS_LABELS[claim.status]}</span>
+            ${sourceChips}
+          </div>
+          ${evidenceToggle}
+        </div>`;
+    }
+
+    function acknowledgementHtml(role, version) {
+      if (role === 'rev') {
+        return '<span class="note">The reviewer view is for approving. Switch to an incoming role to acknowledge receipt.</span>';
+      }
+
+      const done = acknowledgements.find(a => a.version === version.number && a.role === role);
+      if (done) {
+        return `<strong>Acknowledged.</strong> <span class="note">${ROLES[role]} acknowledged version ${version.number} at ${done.time}.</span>`;
+      }
+      return '<button type="button" class="b p" id="ack">Acknowledge receipt</button>';
+    }
+
+
+    /* ====================================================================
+       9. STARTUP: attach event listeners and show the first tab
+       ==================================================================== */
+
+    // Claim list: one listener handles clicks and Enter on any claim
+    function claimIdFromEvent(event) {
+      const el = event.target.closest('.claim');
+      return el ? Number(el.dataset.id) : null;
+    }
+
+    $('#claimList').addEventListener('click', event => {
+      const id = claimIdFromEvent(event);
+      if (id !== null) selectClaim(id);
+    });
+
+    $('#claimList').addEventListener('keydown', event => {
+      if (event.key !== 'Enter') return;
+      const id = claimIdFromEvent(event);
+      if (id !== null) selectClaim(id);
+    });
+
+    $('#apprVer').onclick = approveAllVerified;
+    $('#pubBtn').onclick = publishVersion;
+    $('#role').onchange = renderHandover;
+
+    $$('[data-go]').forEach(button => {
+      button.onclick = () => go(Number(button.dataset.go));
+    });
+
+    buildTabs();
+    renderSources();
+    go(0);
+  </script>
 </body>
 </html>
