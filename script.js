@@ -224,7 +224,7 @@ const $$ = selector => document.querySelectorAll(selector);
 
 const escapeHtml = value =>
   String(value).replace(/[&<>"]/g, char => ({
-    '&': '&amp;',
+    '&': '&amp;',  
     '<': '&lt;',
     '>': '&gt;',
     '"': '&quot;',
