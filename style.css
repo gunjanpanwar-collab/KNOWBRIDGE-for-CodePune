@@ -1,50 +1,344 @@
-:root{--bg:#f2f4f8;--card:#fff;--fg:#14213d;--mut:#5b667a;--bd:#d9dee8;--acc:#0f766e;--accfg:#fff;
---ok:#1b7a4b;--okbg:#e3f4ea;--inf:#2457a6;--infbg:#e4edfb;--con:#a15c00;--conbg:#fdf0d9;--mis:#b3261e;--misbg:#fbe5e3;--st:#6b3fa0;--stbg:#efe6f8;
-box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#0f1624;--card:#18223a;--fg:#e8edf7;--mut:#9aa6bd;--bd:#2c3957;--acc:#3fb8ac;--accfg:#06201d;
---ok:#6fd49c;--okbg:#14301f;--inf:#8db4f2;--infbg:#16294a;--con:#f0b45a;--conbg:#3a2a0e;--mis:#f29a93;--misbg:#3d1a18;--st:#c9a6ee;--stbg:#2b1d3f}}
-:root[data-theme="dark"]{color-scheme:dark;--bg:#0f1624;--card:#18223a;--fg:#e8edf7;--mut:#9aa6bd;--bd:#2c3957;--acc:#3fb8ac;--accfg:#06201d;
---ok:#6fd49c;--okbg:#14301f;--inf:#8db4f2;--infbg:#16294a;--con:#f0b45a;--conbg:#3a2a0e;--mis:#f29a93;--misbg:#3d1a18;--st:#c9a6ee;--stbg:#2b1d3f}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 "Public Sans",system-ui,sans-serif}
-h1,h2,h3{font-family:Newsreader,Georgia,serif;font-weight:600;margin:0}
-header{padding:20px 20px 0;max-width:1000px;margin:0 auto}
-header h1{font-size:28px}
-header p{margin:4px 0 14px;color:var(--mut);max-width:62ch}
-nav{display:flex;gap:4px;border-bottom:1px solid var(--bd);overflow-x:auto}
-nav button{background:none;border:0;border-bottom:3px solid transparent;color:var(--mut);font:500 15px "Public Sans",sans-serif;padding:10px 14px;cursor:pointer;white-space:nowrap}
-nav button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--acc)}
-main{max-width:1000px;margin:0 auto;padding:20px}
-section{display:none}section.on{display:block}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:16px;margin-bottom:14px}
-.row{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
-.muted{color:var(--mut)}
-.badge{display:inline-block;font-size:12.5px;font-weight:600;padding:1px 9px;border-radius:99px}
-.verified{background:var(--okbg);color:var(--ok)}.inferred{background:var(--infbg);color:var(--inf)}
-.conflicting{background:var(--conbg);color:var(--con)}.missing{background:var(--misbg);color:var(--mis)}.stated{background:var(--stbg);color:var(--st)}
-.chip{font-size:12.5px;color:var(--mut);border:1px solid var(--bd);border-radius:4px;padding:0 7px}
-button.b{font:500 14px "Public Sans",sans-serif;border:1px solid var(--bd);background:var(--card);color:var(--fg);padding:6px 12px;border-radius:6px;cursor:pointer}
-button.b.p{background:var(--acc);color:var(--accfg);border-color:var(--acc)}
-button.b:focus-visible,nav button:focus-visible,.claim:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
-button.b:disabled{opacity:.5;cursor:not-allowed}
-.grid{display:grid;grid-template-columns:1.3fr 1fr;gap:16px}
-@media(max-width:760px){.grid{grid-template-columns:1fr}}
-.claim{border-left:5px solid var(--bd);background:var(--card);border-radius:6px;padding:10px 12px;margin-bottom:8px;cursor:pointer;border-top:1px solid var(--bd);border-right:1px solid var(--bd);border-bottom:1px solid var(--bd)}
-.claim.verified{border-left-color:var(--ok)}.claim.inferred{border-left-color:var(--inf)}.claim.conflicting{border-left-color:var(--con)}.claim.missing{border-left-color:var(--mis)}.claim.stated{border-left-color:var(--st)}
-.claim.sel{outline:2px solid var(--acc)}
-.claim .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center}
-.state-approved{color:var(--ok);font-weight:600}.state-rejected{color:var(--mis);font-weight:600;text-decoration:none}
-.claim.rej .txt{text-decoration:line-through;color:var(--mut)}
-blockquote{margin:8px 0;padding:8px 12px;border-left:3px solid var(--acc);background:var(--bg);border-radius:0 6px 6px 0;font-family:Newsreader,Georgia,serif;font-size:16px}
-textarea,select{width:100%;font:15px "Public Sans",sans-serif;padding:8px;border:1px solid var(--bd);border-radius:6px;background:var(--card);color:var(--fg)}
-table{width:100%;border-collapse:collapse;font-size:14px}
-th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--bd);vertical-align:top}
-.wrapx{overflow-x:auto}
-.locked{border:1px dashed var(--bd);color:var(--mut);padding:10px 12px;border-radius:6px;margin-bottom:8px;background:transparent}
-.sum{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
-.note{font-size:13.5px;color:var(--mut)}
-h2{font-size:21px;margin-bottom:6px}h3{font-size:17px;margin:16px 0 6px}
-ol.plan{padding-left:20px;margin:6px 0}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:8px 16px;border-radius:6px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s}
-.toast.on{opacity:1}
+/* ==========================================================================
+   1. THEME TOKENS
+   ========================================================================== */
+
+/* Light theme (default) */
+:root {
+  --bg: #f2f4f8;
+  --card: #fff;
+  --fg: #14213d;
+  --muted: #5b667a;
+  --border: #d9dee8;
+  --accent: #0f766e;
+  --accent-fg: #fff;
+
+  /* Status colours: text + background pairs */
+  --ok: #1b7a4b;       --ok-bg: #e3f4ea;
+  --info: #2457a6;     --info-bg: #e4edfb;
+  --conflict: #a15c00; --conflict-bg: #fdf0d9;
+  --missing: #b3261e;  --missing-bg: #fbe5e3;
+  --stated: #6b3fa0;   --stated-bg: #efe6f8;
+}
+
+/* Dark theme: applied automatically if the OS prefers dark,
+   unless the user has explicitly chosen light */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0f1624;
+    --card: #18223a;
+    --fg: #e8edf7;
+    --muted: #9aa6bd;
+    --border: #2c3957;
+    --accent: #3fb8ac;
+    --accent-fg: #06201d;
+
+    --ok: #6fd49c;       --ok-bg: #14301f;
+    --info: #8db4f2;     --info-bg: #16294a;
+    --conflict: #f0b45a; --conflict-bg: #3a2a0e;
+    --missing: #f29a93;  --missing-bg: #3d1a18;
+    --stated: #c9a6ee;   --stated-bg: #2b1d3f;
+  }
+}
+
+/* Dark theme: applied when the user explicitly picks dark.
+   (Same values as above; CSS can't share one block across a media query
+   and a plain selector, so the duplication is intentional.) */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0f1624;
+  --card: #18223a;
+  --fg: #e8edf7;
+  --muted: #9aa6bd;
+  --border: #2c3957;
+  --accent: #3fb8ac;
+  --accent-fg: #06201d;
+
+  --ok: #6fd49c;       --ok-bg: #14301f;
+  --info: #8db4f2;     --info-bg: #16294a;
+  --conflict: #f0b45a; --conflict-bg: #3a2a0e;
+  --missing: #f29a93;  --missing-bg: #3d1a18;
+  --stated: #c9a6ee;   --stated-bg: #2b1d3f;
+}
+
+
+/* ==========================================================================
+   2. BASE
+   ========================================================================== */
+
+*,
+:root {
+  box-sizing: border-box;
+}
+
+/* Keep content clear of phone notches / system bars */
+:root {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html {
+  scroll-padding-top: env(safe-area-inset-top, 0px);
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 15px/1.55 "Public Sans", system-ui, sans-serif;
+}
+
+h1, h2, h3 {
+  margin: 0;
+  font-family: Newsreader, Georgia, serif;
+  font-weight: 600;
+}
+h2 { margin-bottom: 6px; font-size: 21px; }
+h3 { margin: 16px 0 6px; font-size: 17px; }
+
+blockquote {
+  margin: 8px 0;
+  padding: 8px 12px;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 6px 6px 0;
+  background: var(--bg);
+  font-family: Newsreader, Georgia, serif;
+  font-size: 16px;
+}
+
+.muted { color: var(--muted); }
+.note  { font-size: 13.5px; color: var(--muted); }
+
+
+/* ==========================================================================
+   3. LAYOUT: header, tab navigation, sections
+   ========================================================================== */
+
+header {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px 20px 0;
+}
+header h1 { font-size: 28px; }
+header p {
+  max-width: 62ch;
+  margin: 4px 0 14px;
+  color: var(--muted);
+}
+
+nav {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+}
+nav button {
+  padding: 10px 14px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: none;
+  color: var(--muted);
+  font: 500 15px "Public Sans", sans-serif;
+  white-space: nowrap;
+  cursor: pointer;
+}
+nav button[aria-selected="true"] {
+  color: var(--fg);
+  border-bottom-color: var(--accent);
+}
+
+main {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Only the active tab panel is shown */
+section    { display: none; }
+section.on { display: block; }
+
+/* Two-column layout that collapses to one column on small screens */
+.grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 760px) {
+  .grid { grid-template-columns: 1fr; }
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.sum {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+
+
+/* ==========================================================================
+   4. COMPONENTS
+   ========================================================================== */
+
+/* --- Card --- */
+.card {
+  margin-bottom: 14px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+}
+
+/* --- Badges and chips --- */
+.badge {
+  display: inline-block;
+  padding: 1px 9px;
+  border-radius: 99px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.chip {
+  padding: 0 7px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+/* Status colours for badges */
+.verified    { background: var(--ok-bg);       color: var(--ok); }
+.inferred    { background: var(--info-bg);     color: var(--info); }
+.conflicting { background: var(--conflict-bg); color: var(--conflict); }
+.missing     { background: var(--missing-bg);  color: var(--missing); }
+.stated      { background: var(--stated-bg);   color: var(--stated); }
+
+/* --- Buttons --- */
+button.b {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--fg);
+  font: 500 14px "Public Sans", sans-serif;
+  cursor: pointer;
+}
+button.b.p {                      /* primary variant */
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-fg);
+}
+button.b:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+/* --- Claim items --- */
+.claim {
+  margin-bottom: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-left: 5px solid var(--border);   /* overridden by status below */
+  border-radius: 6px;
+  background: var(--card);
+  cursor: pointer;
+}
+.claim.verified    { border-left-color: var(--ok); }
+.claim.inferred    { border-left-color: var(--info); }
+.claim.conflicting { border-left-color: var(--conflict); }
+.claim.missing     { border-left-color: var(--missing); }
+.claim.stated      { border-left-color: var(--stated); }
+
+.claim.sel { outline: 2px solid var(--accent); }
+
+.claim .meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 6px;
+}
+
+/* Review states */
+.state-approved { color: var(--ok);      font-weight: 600; }
+.state-rejected { color: var(--missing); font-weight: 600; }
+.claim.rej .txt {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+/* --- Form fields --- */
+textarea,
+select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--fg);
+  font: 15px "Public Sans", sans-serif;
+}
+
+/* --- Keyboard focus ring (shared by all interactive elements) --- */
+button.b:focus-visible,
+nav button:focus-visible,
+.claim:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* --- Table (wrap in .wrapx so it scrolls sideways on narrow screens) --- */
+.wrapx { overflow-x: auto; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+th, td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+/* --- Placeholder for content that isn't available yet --- */
+.locked {
+  margin-bottom: 8px;
+  padding: 10px 12px;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+}
+
+/* --- Numbered plan list --- */
+ol.plan {
+  margin: 6px 0;
+  padding-left: 20px;
+}
+
+/* --- Toast notification (fades in/out via the .on class) --- */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  padding: 8px 16px;
+  border-radius: 6px;
+  background: var(--fg);
+  color: var(--bg);
+  font-size: 14px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s;
+}
+.toast.on { opacity: 1; }
