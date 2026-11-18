@@ -1,6 +1,7 @@
 """KNOWBRIDGE: evidence-linked project handover (Round 2 build)."""
 import json
 import os
+from datetime import datetime, timezone
 from functools import wraps
 
 from dotenv import load_dotenv
@@ -10,6 +11,7 @@ load_dotenv()
 
 import db  # noqa: E402  (after load_dotenv so DB_PATH from .env is honoured)
 from conflicts import values_differ  # noqa: E402
+from redact import redact  # noqa: E402
 from extract import run_extraction  # noqa: E402
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
@@ -47,6 +49,16 @@ def reviewer_only(f):
     return wrapper
 
 
+def leaver_only(f):
+    @wraps(f)
+    @login_required
+    def wrapper(*a, **kw):
+        if current_role() != "leaver":
+            return jsonify(error="Only the departing member can answer interview questions."), 403
+        return f(*a, **kw)
+    return wrapper
+
+
 def can_open(role, allowed_roles):
     return role in allowed_roles
 
@@ -57,6 +69,7 @@ def claim_rows(conn):
     Conflict handling: claims sharing a conflict_group disagree with each other. The reviewer
     resolves a conflict by rejecting the out-of-date claim; once fewer than two live claims
     remain in a group, the survivor is shown as Verified again."""
+    roles_by_source = {r["id"]: json.loads(r["allowed_roles"]) for r in conn.execute("SELECT id, allowed_roles FROM sources")}
     claims = []
     for c in conn.execute("SELECT * FROM claims ORDER BY id"):
         ev = []
@@ -67,7 +80,11 @@ def claim_rows(conn):
                        "source": e["filename"], "roles": json.loads(e["allowed_roles"])})
         claims.append({"id": c["id"], "type": c["type"], "text": c["text"],
                        "status": c["status"], "review": c["review_state"], "evidence": ev,
-                       "group": c["conflict_group"], "value": c["value"] or ""})
+                       "group": c["conflict_group"], "value": c["value"] or "",
+                       # who may see this claim: every source behind its evidence, PLUS sources inherited
+                       # from the question an interview answer responds to
+                       "access": [e["roles"] for e in ev] + [roles_by_source[i] for i in json.loads(c["inherit"] or "[]")
+                                                           if i in roles_by_source]})
     groups = {}
     for c in claims:
         if c["group"]:
@@ -82,14 +99,14 @@ def claim_rows(conn):
     # strip the recursive reference so the result is plain JSON
     for c in claims:
         c["conflicts_with"] = [{"id": o["id"], "text": o["text"], "review": o["review"],
-                                "evidence": o["evidence"]} for o in c["conflicts_with"]]
+                                "evidence": o["evidence"], "access": o["access"]} for o in c["conflicts_with"]]
         del c["value"]
     return claims
 
 
 def visible_to(role, claim):
     """PERMISSION RULE: a claim is visible only if the role may open EVERY source behind it."""
-    return all(can_open(role, e["roles"]) for e in claim["evidence"])
+    return all(can_open(role, roles) for roles in claim["access"])
 
 
 def build_plan(claims):
@@ -221,6 +238,61 @@ def update_claim(cid):
     return jsonify(ok=True)
 
 
+# ---------- gap interview ----------
+MAX_ANSWER = 1000
+
+
+def question_rows(conn, role):
+    """Questions this role may see. The reviewer sees all; the departing member sees a question only
+    if their role may open every source behind it (so a question never reveals a restricted source)."""
+    roles_by_source = {r["id"]: json.loads(r["allowed_roles"]) for r in conn.execute("SELECT id, allowed_roles FROM sources")}
+    out = []
+    for q in conn.execute("SELECT * FROM questions ORDER BY id"):
+        ids = json.loads(q["sources"])
+        if role != "reviewer" and not all(can_open(role, roles_by_source.get(i, [])) for i in ids):
+            continue
+        out.append({"id": q["id"], "kind": q["kind"], "prompt": q["prompt"], "answer": q["answer"],
+                    "answered_at": q["answered_at"]})
+    return out
+
+
+@app.get("/api/questions")
+@login_required
+def list_questions():
+    if current_role() not in ("reviewer", "leaver"):
+        return jsonify(error="Interview questions are for the reviewer and the departing member."), 403
+    with db.get_db() as conn:
+        return jsonify(questions=question_rows(conn, current_role()), can_answer=current_role() == "leaver")
+
+
+@app.post("/api/questions/<int:qid>/answer")
+@leaver_only
+def answer_question(qid):
+    answer = ((request.get_json(silent=True) or {}).get("answer") or "").strip()
+    if not answer:
+        return jsonify(error="Write an answer first."), 400
+    if len(answer) > MAX_ANSWER:
+        return jsonify(error=f"Please keep the answer under {MAX_ANSWER} characters."), 400
+    answer, _ = redact(answer)  # the answer is masked like any other source text
+    with db.get_db() as conn:
+        q = conn.execute("SELECT * FROM questions WHERE id=?", (qid,)).fetchone()
+        if q is None or qid not in [x["id"] for x in question_rows(conn, "leaver")]:
+            return jsonify(error="Question not found."), 404  # same reply for hidden and missing questions
+        text = f"Stated by the departing member about \u201c{q['about']}\u201d: {answer}"
+        now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        if q["answer_claim_id"]:
+            # answering again edits the same claim instead of creating a duplicate, and re-opens review
+            conn.execute("UPDATE claims SET text=?, review_state='pending' WHERE id=?", (text, q["answer_claim_id"]))
+            claim_id = q["answer_claim_id"]
+        else:
+            claim_id = conn.execute(
+                "INSERT INTO claims (type, text, status, review_state, question_id, inherit) VALUES (?,?,?,?,?,?)",
+                ("Leaver answer", text, "stated", "pending", qid, q["sources"])).lastrowid
+        conn.execute("UPDATE questions SET answer=?, answered_at=?, answer_claim_id=? WHERE id=?",
+                     (answer, now, claim_id, qid))
+    return jsonify(ok=True)
+
+
 # ---------- handover (server-side permission filter) ----------
 @app.get("/api/handover")
 @login_required
@@ -233,7 +305,7 @@ def handover():
         if visible_to(role, c):
             # Only send what this role may see: evidence from sources it can open (all of them, by the rule).
             others = [o for o in c["conflicts_with"] if o["review"] == "approved"]
-            seen = [o for o in others if all(can_open(role, e["roles"]) for e in o["evidence"])]
+            seen = [o for o in others if all(can_open(role, roles) for roles in o["access"])]
             shown.append({"id": c["id"], "type": c["type"], "text": c["text"], "status": c["status"],
                           "group": c["group"],
                           "evidence": [{"source": e["source"], "quote": e["quote"]} for e in c["evidence"]],

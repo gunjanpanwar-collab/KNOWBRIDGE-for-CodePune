@@ -19,6 +19,7 @@
       <option value="reviewer">Reviewer</option>
       <option value="developer">Incoming developer</option>
       <option value="member">Incoming non-technical member</option>
+      <option value="leaver">Departing member</option>
     </select>
     <button class="b p" id="loginBtn">Sign in</button>
     <span class="note" id="who"></span>
@@ -38,6 +39,7 @@
       <li>Open <b>Review</b>, click any point to see its proof, then click <b>Approve all verified</b>.</li>
       <li>Click <b>Sign out</b>, sign in as <b>Incoming non-technical member</b> and open <b>Handover</b>. The “Restricted” boxes are on purpose.</li>
     </ol>
+    <p class="note">Extra: sign in as the <b>Departing member</b> to answer the questions the system asks about gaps in the files (Interview tab). The Reviewer then approves those answers in Review.</p>
     <div class="formrow"><button class="b p" id="startDemo">Start the demo</button>
     <span class="note">All data is invented. Passwords, API keys and phone numbers in uploaded files are masked automatically.</span></div>
   </div>
@@ -57,6 +59,7 @@
         <span class="note">Also visible to:</span>
         <label><input type="checkbox" value="developer"> Incoming developer</label>
         <label><input type="checkbox" value="member"> Incoming non-technical member</label>
+        <label><input type="checkbox" value="leaver"> Departing member</label>
       </div>
       <div class="formrow">
         <button class="b" id="uploadBtn">Upload source</button>
@@ -78,6 +81,13 @@
       <div id="claimList"></div>
       <div class="card" id="panel" style="position:sticky;top:12px;align-self:start"></div>
     </div>
+  </section>
+
+  <section id="s3">
+    <h2>Gap interview</h2>
+    <div class="hint" id="hint3"></div>
+    <p class="muted">For every gap or disagreement the system found, it asks one specific question. Answers are saved as claims marked <b>Stated by leaver</b>, never <b>Verified</b>, and the reviewer approves them before anyone else sees them.</p>
+    <div id="qs"></div>
   </section>
 
   <section id="s2">

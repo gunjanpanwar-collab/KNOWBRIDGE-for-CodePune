@@ -9,6 +9,7 @@ import time
 from pathlib import Path
 
 from conflicts import find_conflicts
+from interview import generate_questions
 from verify import verify_claim
 
 BASE = Path(__file__).resolve().parent
@@ -149,4 +150,5 @@ def run_extraction(conn, proposer=None):
                          (gid, candidates[i]["id"]))
             counts["verified"] -= 1
             counts["conflicting"] += 1
+    counts["questions"] = generate_questions(conn)  # gap interview: one question per gap or conflict
     return {"ok": True, "mode": mode, "note": note, **counts}

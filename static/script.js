@@ -1,8 +1,8 @@
 // KNOWBRIDGE front end. All data comes from the Flask API; permissions are enforced on the server.
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const LABEL = {verified:'Verified', inferred:'Inferred', conflicting:'Conflicting', missing:'Missing'};
-const ROLE = {reviewer:'Reviewer', developer:'Incoming developer', member:'Incoming non-technical member'};
+const LABEL = {verified:'Verified', inferred:'Inferred', conflicting:'Conflicting', missing:'Missing', stated:'Stated by leaver'};
+const ROLE = {reviewer:'Reviewer', developer:'Incoming developer', member:'Incoming non-technical member', leaver:'Departing member'};
 let me = null, claims = [], sel = null, tab = 0;
 
 async function api(path, opts = {}) {
@@ -16,7 +16,11 @@ async function api(path, opts = {}) {
 }
 function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('on'), 2200); }
 
-function tabsFor(role) { return role === 'reviewer' ? ['Sources', 'Review', 'Handover'] : ['Sources', 'Handover']; }
+function tabsFor(role) {
+  if (role === 'reviewer') return ['Sources', 'Interview', 'Review', 'Handover'];
+  if (role === 'leaver') return ['Sources', 'Interview'];
+  return ['Sources', 'Handover'];
+}
 function renderTabs() {
   const nav = $('#tabs'); nav.innerHTML = '';
   if (!me) return;
@@ -26,14 +30,19 @@ function renderTabs() {
     b.onclick = () => go(i); nav.append(b);
   });
 }
-function sectionIds() { return me === 'reviewer' ? ['s0', 's1', 's2'] : ['s0', 's2']; }
+function sectionIds() {
+  if (me === 'reviewer') return ['s0', 's3', 's1', 's2'];
+  if (me === 'leaver') return ['s0', 's3'];
+  return ['s0', 's2'];
+}
 async function go(i) {
   tab = i; renderTabs();
-  ['s0', 's1', 's2'].forEach(id => $('#' + id).classList.toggle('on', id === sectionIds()[i]));
+  ['s0', 's1', 's2', 's3'].forEach(id => $('#' + id).classList.toggle('on', id === sectionIds()[i]));
   const id = sectionIds()[i];
   showHint(id);
   if (id === 's0') await loadSources();
   if (id === 's1') await loadClaims();
+  if (id === 's3') await loadQuestions();
   if (id === 's2') await loadHandover();
   window.scrollTo(0, 0);
 }
@@ -45,7 +54,7 @@ async function refreshMe() {
   $('#who').textContent = me ? 'Signed in as ' + ROLE[me] : '';
     if (me) $('#roleSel').value = me;
   $('#reviewerTools').classList.toggle('hidden', me !== 'reviewer');
-  ['s0', 's1', 's2'].forEach(id => $('#' + id).classList.remove('on'));
+  ['s0', 's1', 's2', 's3'].forEach(id => $('#' + id).classList.remove('on'));
   renderTabs();
   if (me) go(0);
 }
@@ -69,6 +78,7 @@ function maskedText(m) {
 }
 const HINTS = {
   s0: r => r === 'reviewer' ? 'Step 1 of 3: load the demo data (or upload a file), then click Extract claims.' : 'These are the sources your role may open. Others are hidden from you on purpose.',
+  s3: r => r === 'leaver' ? 'The system found things the files cannot explain. Answer in your own words. Your answers are reviewed before anyone else sees them.' : 'These questions are for the departing member. Sign in as Departing member to answer them; the answers come back to you as claims to approve.',
   s1: () => 'Step 2 of 3: click a point to see its proof, then Approve. Only approved points reach the handover.',
   s2: r => r === 'reviewer' ? 'Step 3 of 3: sign out and sign in as an Incoming role to see what that person may see.' : 'This is your handover. Items marked Restricted are hidden from your role on purpose.'
 };
@@ -105,7 +115,7 @@ $('#extractBtn').onclick = async () => {
   const d = r.data;
   const how = d.mode === 'ai' ? 'The AI proposed these claims and code checked each quote.' : 'The live AI was not used for this run.';
   $('#extractMsg').innerHTML = (d.note ? `<div class="banner">${esc(d.note)}</div>` : '') +
-    `<div class="banner ok">${how} ${d.verified} verified, ${d.conflicting || 0} conflicting, ${d.missing} missing-information, ${d.inferred} inferred (quote not found), ${d.dropped} dropped (no evidence). Next, open the Review tab.</div>`;
+    `<div class="banner ok">${how} ${d.verified} verified, ${d.conflicting || 0} conflicting, ${d.missing} missing-information, ${d.inferred} inferred (quote not found), ${d.dropped} dropped (no evidence). ${d.questions ? d.questions + ' interview question(s) were created.' : ''} Next, open the Review tab.</div>`;
 };
 
 // ---------- Review ----------
@@ -165,8 +175,33 @@ $('#apprAll').onclick = async () => {
   toast(todo.length + ' verified claims approved'); loadClaims();
 };
 
+// ---------- Interview ----------
+async function loadQuestions() {
+  const r = await api('/api/questions');
+  const box = $('#qs');
+  if (!r.ok) { box.innerHTML = `<div class="banner">${esc(r.data.error || 'Could not load the questions.')}</div>`; return; }
+  const qs = r.data.questions, canAnswer = r.data.can_answer;
+  if (!qs.length) { box.innerHTML = '<div class="card muted">No questions yet. The reviewer needs to extract claims first, and only gaps and conflicts produce questions.</div>'; return; }
+  box.innerHTML = qs.map(q => `<div class="card"><span class="chip">${q.kind === 'conflict' ? 'Sources disagree' : 'Gap in the files'}</span>
+    <p style="margin:8px 0"><b>${esc(q.prompt)}</b></p>
+    ${canAnswer ? `<label class="note" for="a${q.id}">Your answer</label><textarea id="a${q.id}" rows="3" maxlength="1000">${esc(q.answer || '')}</textarea>
+      <div class="formrow"><button class="b p" data-q="${q.id}">${q.answer ? 'Update answer' : 'Save answer'}</button>
+      <span class="note" id="s${q.id}">${q.answer ? 'Saved. Waiting for the reviewer to approve it.' : ''}</span></div>`
+      : (q.answer ? `<blockquote>${esc(q.answer)}</blockquote><div class="note">Answered. It is now a claim marked Stated by leaver, waiting for your review.</div>` : '<div class="note">Not answered yet.</div>')}
+    </div>`).join('');
+  document.querySelectorAll('[data-q]').forEach(b => b.onclick = async () => {
+    const id = b.dataset.q, v = $('#a' + id).value.trim();
+    if (!v) return toast('Write an answer first.');
+    b.disabled = true;
+    const res = await api('/api/questions/' + id + '/answer', {json: {answer: v}});
+    b.disabled = false;
+    if (!res.ok) return toast(res.data.error || 'Could not save the answer.');
+    $('#s' + id).textContent = 'Saved. Waiting for the reviewer to approve it.'; b.textContent = 'Update answer'; toast('Answer saved');
+  });
+}
+
 // ---------- Handover ----------
-const GROUPS = [['Decisions', ['Decision']], ['Ownership', ['Owner']], ['Risks and open items', ['Risk', 'Blocker', 'Open question', 'Next action', 'Dependency']], ['Contacts', ['Contact']]];
+const GROUPS = [['Decisions', ['Decision']], ['Ownership', ['Owner']], ['Risks and open items', ['Risk', 'Blocker', 'Open question', 'Next action', 'Dependency']], ['Contacts', ['Contact']], ['From the departing member (stated, not checked against a source)', ['Leaver answer']]];
 function handoverConflict(c) {
   const sides = (c.conflicts || []).map(o => `<div><div class="note"><b>Another source says</b></div>${esc(o.text)}${quoteList(o.evidence)}</div>`).join('');
   const hidden = c.hidden_conflicts ? `<p class="note">It also disagrees with ${c.hidden_conflicts} item(s) your role cannot see. Ask the reviewer.</p>` : '';
@@ -185,7 +220,7 @@ async function loadHandover() {
     const items = d.claims.filter(c => types.includes(c.type)); if (!items.length) return;
     out += `<h3>${title}</h3>` + items.map(c => `<div class="claim ${c.status}" style="cursor:default"><div>${esc(c.text)}</div>
       <div class="meta"><span class="badge ${c.status}">${LABEL[c.status]}</span>${c.evidence.map(e => `<span class="chip">${esc(e.source)}</span>`).join('')}</div>
-      <details style="margin-top:6px"><summary class="note">Show evidence</summary>${c.evidence.map(e => `<blockquote>“${esc(e.quote)}”</blockquote>`).join('')}</details>
+      ${c.evidence.length ? `<details style="margin-top:6px"><summary class="note">Show evidence</summary>${c.evidence.map(e => `<blockquote>“${esc(e.quote)}”</blockquote>`).join('')}</details>` : '<div class="note" style="margin-top:6px">Said by the departing member. Not checked against a source.</div>'}
       ${c.status === 'conflicting' ? handoverConflict(c) : ''}</div>`).join('');
   });
   if (d.restricted) out += `<h3>Restricted</h3>` + Array.from({length: d.restricted}, () => '<div class="locked">Restricted item. Ask the reviewer.</div>').join('');

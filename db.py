@@ -13,6 +13,7 @@ ROLES = {
     "reviewer": "Reviewer",
     "developer": "Incoming developer",
     "member": "Incoming non-technical member",
+    "leaver": "Departing member",
 }
 
 SCHEMA = """
@@ -27,7 +28,11 @@ CREATE TABLE IF NOT EXISTS chunks (
 CREATE TABLE IF NOT EXISTS claims (
     id INTEGER PRIMARY KEY, type TEXT NOT NULL, text TEXT NOT NULL,
     status TEXT NOT NULL, review_state TEXT NOT NULL DEFAULT 'pending',
-    subject TEXT, value TEXT, conflict_group INTEGER);
+    subject TEXT, value TEXT, conflict_group INTEGER, question_id INTEGER, inherit TEXT);
+CREATE TABLE IF NOT EXISTS questions (
+    id INTEGER PRIMARY KEY, kind TEXT NOT NULL, prompt TEXT NOT NULL, about TEXT NOT NULL,
+    claim_id INTEGER NOT NULL REFERENCES claims(id) ON DELETE CASCADE,
+    sources TEXT NOT NULL, answer TEXT, answered_at TEXT, answer_claim_id INTEGER);
 CREATE TABLE IF NOT EXISTS evidence (
     id INTEGER PRIMARY KEY, claim_id INTEGER NOT NULL REFERENCES claims(id) ON DELETE CASCADE,
     source_id INTEGER NOT NULL REFERENCES sources(id) ON DELETE CASCADE,
@@ -36,10 +41,10 @@ CREATE TABLE IF NOT EXISTS evidence (
 
 # Demo sources and who may open them (all data is invented).
 DEMO_SOURCES = {
-    "meeting_notes_12.md": ["reviewer", "developer", "member"],
-    "meeting_notes_14.md": ["reviewer", "developer", "member"],
-    "tasks.csv": ["reviewer", "developer", "member"],
-    "github_export.json": ["reviewer", "developer"],
+    "meeting_notes_12.md": ["reviewer", "developer", "member", "leaver"],
+    "meeting_notes_14.md": ["reviewer", "developer", "member", "leaver"],
+    "tasks.csv": ["reviewer", "developer", "member", "leaver"],
+    "github_export.json": ["reviewer", "developer", "leaver"],
     "leadership_chat_private.txt": ["reviewer"],
 }
 
@@ -58,7 +63,8 @@ def init_db():
         if "redactions" not in cols:  # databases created before Round 3
             conn.execute("ALTER TABLE sources ADD COLUMN redactions TEXT")
         ccols = [r["name"] for r in conn.execute("PRAGMA table_info(claims)")]
-        for col, kind in (("subject", "TEXT"), ("value", "TEXT"), ("conflict_group", "INTEGER")):
+        for col, kind in (("subject", "TEXT"), ("value", "TEXT"), ("conflict_group", "INTEGER"),
+                          ("question_id", "INTEGER"), ("inherit", "TEXT")):
             if col not in ccols:  # databases created before conflict detection
                 conn.execute(f"ALTER TABLE claims ADD COLUMN {col} {kind}")
         redact_existing(conn)
