@@ -9,6 +9,7 @@ from flask import Flask, jsonify, request, send_from_directory, session
 load_dotenv()
 
 import db  # noqa: E402  (after load_dotenv so DB_PATH from .env is honoured)
+from conflicts import values_differ  # noqa: E402
 from extract import run_extraction  # noqa: E402
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
@@ -51,7 +52,11 @@ def can_open(role, allowed_roles):
 
 
 def claim_rows(conn):
-    """All claims with their evidence and the roles allowed on each source."""
+    """All claims with their evidence and the roles allowed on each source.
+
+    Conflict handling: claims sharing a conflict_group disagree with each other. The reviewer
+    resolves a conflict by rejecting the out-of-date claim; once fewer than two live claims
+    remain in a group, the survivor is shown as Verified again."""
     claims = []
     for c in conn.execute("SELECT * FROM claims ORDER BY id"):
         ev = []
@@ -61,7 +66,24 @@ def claim_rows(conn):
             ev.append({"quote": e["quote"], "found": bool(e["quote_found"]),
                        "source": e["filename"], "roles": json.loads(e["allowed_roles"])})
         claims.append({"id": c["id"], "type": c["type"], "text": c["text"],
-                       "status": c["status"], "review": c["review_state"], "evidence": ev})
+                       "status": c["status"], "review": c["review_state"], "evidence": ev,
+                       "group": c["conflict_group"], "value": c["value"] or ""})
+    groups = {}
+    for c in claims:
+        if c["group"]:
+            groups.setdefault(c["group"], []).append(c)
+    for c in claims:
+        # A claim conflicts with the OTHER live (not rejected) claims in its group whose value differs.
+        others = [o for o in groups.get(c["group"], []) if o["id"] != c["id"] and o["review"] != "rejected"
+                  and values_differ(c["value"], o["value"])]
+        c["conflicts_with"] = others if c["status"] == "conflicting" else []
+        if c["status"] == "conflicting" and c["review"] != "rejected" and not others:
+            c["status"] = "verified"  # conflict resolved: nobody live disagrees with it any more
+    # strip the recursive reference so the result is plain JSON
+    for c in claims:
+        c["conflicts_with"] = [{"id": o["id"], "text": o["text"], "review": o["review"],
+                                "evidence": o["evidence"]} for o in c["conflicts_with"]]
+        del c["value"]
     return claims
 
 
@@ -81,7 +103,13 @@ def build_plan(claims):
         day1.append("Get in touch with: " + "; ".join(short(c) for c in by("Contact")[:3]) + ".")
     if by("Owner"):
         day1.append("Know who owns what: " + "; ".join(short(c) for c in by("Owner")[:3]) + ".")
-    gaps = [c for c in claims if c["status"] == "missing" or c["type"] in ("Blocker", "Open question", "Next action")]
+    seen_groups = set()
+    for c in claims:
+        if c["status"] == "conflicting" and c.get("group") not in seen_groups:
+            seen_groups.add(c.get("group"))
+            week1.append("Sources disagree, confirm which is right: " + short(c) + ".")
+    gaps = [c for c in claims if c["status"] == "missing" or
+            (c["type"] in ("Blocker", "Open question", "Next action") and c["status"] != "conflicting")]
     for c in gaps[:4]:
         week1.append("Resolve: " + short(c) + ".")
     for c in by("Risk")[:3]:
@@ -204,8 +232,15 @@ def handover():
     for c in approved:
         if visible_to(role, c):
             # Only send what this role may see: evidence from sources it can open (all of them, by the rule).
+            others = [o for o in c["conflicts_with"] if o["review"] == "approved"]
+            seen = [o for o in others if all(can_open(role, e["roles"]) for e in o["evidence"])]
             shown.append({"id": c["id"], "type": c["type"], "text": c["text"], "status": c["status"],
-                          "evidence": [{"source": e["source"], "quote": e["quote"]} for e in c["evidence"]]})
+                          "group": c["group"],
+                          "evidence": [{"source": e["source"], "quote": e["quote"]} for e in c["evidence"]],
+                          "conflicts": [{"text": o["text"],
+                                         "evidence": [{"source": e["source"], "quote": e["quote"]} for e in o["evidence"]]}
+                                        for o in seen],
+                          "hidden_conflicts": len(others) - len(seen)})
         else:
             restricted += 1  # nothing about the claim is sent, not even its type
     return jsonify(role=role, claims=shown, restricted=restricted, plan=build_plan(shown))

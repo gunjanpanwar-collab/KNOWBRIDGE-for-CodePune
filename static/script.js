@@ -105,7 +105,7 @@ $('#extractBtn').onclick = async () => {
   const d = r.data;
   const how = d.mode === 'ai' ? 'The AI proposed these claims and code checked each quote.' : 'The live AI was not used for this run.';
   $('#extractMsg').innerHTML = (d.note ? `<div class="banner">${esc(d.note)}</div>` : '') +
-    `<div class="banner ok">${how} ${d.verified} verified, ${d.missing} missing-information, ${d.inferred} inferred (quote not found), ${d.dropped} dropped (no evidence). Next, open the Review tab.</div>`;
+    `<div class="banner ok">${how} ${d.verified} verified, ${d.conflicting || 0} conflicting, ${d.missing} missing-information, ${d.inferred} inferred (quote not found), ${d.dropped} dropped (no evidence). Next, open the Review tab.</div>`;
 };
 
 // ---------- Review ----------
@@ -131,6 +131,13 @@ function renderReview() {
   });
   renderPanel();
 }
+function quoteList(ev) { return ev.map(e => `<blockquote>“${esc(e.quote)}”</blockquote><div class="note">${esc(e.source)}</div>`).join(''); }
+function conflictBlock(c) {
+  if (c.status !== 'conflicting' || !c.conflicts_with || !c.conflicts_with.length) return '';
+  return `<div class="banner"><b>Conflicting:</b> sources disagree about this. Compare the two sides, then reject the one that is out of date. Rejecting it resolves the conflict.</div>
+    <div class="sbs"><div><div class="note"><b>This claim</b></div>${esc(c.text)}${quoteList(c.evidence)}</div>
+    ${c.conflicts_with.map(o => `<div><div class="note"><b>Disagrees with</b> (${o.review === 'approved' ? 'approved' : 'not yet approved'})</div>${esc(o.text)}${quoteList(o.evidence)}</div>`).join('')}</div>`;
+}
 function renderPanel() {
   const c = claims.find(x => x.id === sel), p = $('#panel');
   if (!c) { p.innerHTML = '<b>Evidence</b><p class="muted">Select a claim to see the exact quote behind it and who can open each source.</p>'; return; }
@@ -139,6 +146,7 @@ function renderPanel() {
     <textarea id="ed" rows="3">${esc(c.text)}</textarea>
     ${c.evidence.map(e => `<blockquote>“${esc(e.quote)}”</blockquote><div class="note">${e.found ? 'Quote found in' : '<b>Quote NOT found in</b>'} ${esc(e.source)}. Visible to: ${e.roles.map(r => ROLE[r]).join(', ')}</div>`).join('')}
     ${c.status === 'inferred' ? '<p class="note"><b>Inferred:</b> at least one quote could not be found in its source. Check it carefully before approving.</p>' : ''}
+    ${conflictBlock(c)}
     ${c.status === 'missing' ? '<p class="note"><b>Missing:</b> something expected is not recorded in any source. Ask the person who is leaving.</p>' : ''}
     <div class="formrow"><button class="b p" id="bA">Approve</button><button class="b" id="bS">Save edit</button><button class="b" id="bR">Reject</button></div>`;
   const send = async (body, msg) => {
@@ -159,6 +167,11 @@ $('#apprAll').onclick = async () => {
 
 // ---------- Handover ----------
 const GROUPS = [['Decisions', ['Decision']], ['Ownership', ['Owner']], ['Risks and open items', ['Risk', 'Blocker', 'Open question', 'Next action', 'Dependency']], ['Contacts', ['Contact']]];
+function handoverConflict(c) {
+  const sides = (c.conflicts || []).map(o => `<div><div class="note"><b>Another source says</b></div>${esc(o.text)}${quoteList(o.evidence)}</div>`).join('');
+  const hidden = c.hidden_conflicts ? `<p class="note">It also disagrees with ${c.hidden_conflicts} item(s) your role cannot see. Ask the reviewer.</p>` : '';
+  return `<div class="banner" style="margin-top:8px"><b>Sources disagree.</b> Check with the reviewer which one is right.</div><div class="sbs">${sides}</div>${hidden}`;
+}
 async function loadHandover() {
   const r = await api('/api/handover');
   if (!r.ok) return toast(r.data.error || 'Could not load the handover.');
@@ -172,7 +185,8 @@ async function loadHandover() {
     const items = d.claims.filter(c => types.includes(c.type)); if (!items.length) return;
     out += `<h3>${title}</h3>` + items.map(c => `<div class="claim ${c.status}" style="cursor:default"><div>${esc(c.text)}</div>
       <div class="meta"><span class="badge ${c.status}">${LABEL[c.status]}</span>${c.evidence.map(e => `<span class="chip">${esc(e.source)}</span>`).join('')}</div>
-      <details style="margin-top:6px"><summary class="note">Show evidence</summary>${c.evidence.map(e => `<blockquote>“${esc(e.quote)}”</blockquote>`).join('')}</details></div>`).join('');
+      <details style="margin-top:6px"><summary class="note">Show evidence</summary>${c.evidence.map(e => `<blockquote>“${esc(e.quote)}”</blockquote>`).join('')}</details>
+      ${c.status === 'conflicting' ? handoverConflict(c) : ''}</div>`).join('');
   });
   if (d.restricted) out += `<h3>Restricted</h3>` + Array.from({length: d.restricted}, () => '<div class="locked">Restricted item. Ask the reviewer.</div>').join('');
   h.innerHTML = out;

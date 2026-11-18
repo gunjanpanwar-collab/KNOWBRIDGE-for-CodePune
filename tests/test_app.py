@@ -62,7 +62,8 @@ class Flow(unittest.TestCase):
         self.assertEqual(r["mode"], "sample")
         self.assertEqual(r["dropped"], 0)
         self.assertEqual(r["inferred"], 0)
-        self.assertEqual(r["verified"] + r["missing"], 12)
+        self.assertEqual(r["verified"] + r["missing"] + r["conflicting"], 14)
+        self.assertEqual((r["conflicting"], r["missing"]), (3, 3))
 
     def test_invented_quote_is_downgraded_and_unsupported_claim_dropped(self):
         def proposer(conn):
@@ -82,11 +83,11 @@ class Flow(unittest.TestCase):
         rev = self.login("reviewer").get("/api/handover").get_json()
         dev = self.login("developer").get("/api/handover").get_json()
         mem = self.login("member").get("/api/handover").get_json()
-        self.assertEqual(len(rev["claims"]), 12)
+        self.assertEqual(len(rev["claims"]), 14)
         self.assertEqual(rev["restricted"], 0)
         # developer cannot open the private chat; member cannot open chat or GitHub export
-        self.assertEqual((len(dev["claims"]), dev["restricted"]), (11, 1))
-        self.assertEqual((len(mem["claims"]), mem["restricted"]), (9, 3))
+        self.assertEqual((len(dev["claims"]), dev["restricted"]), (13, 1))
+        self.assertEqual((len(mem["claims"]), mem["restricted"]), (11, 3))
         # restricted content must not be present anywhere in the response body
         body_dev = str(dev).lower()
         self.assertNotIn("sponsor", body_dev)

@@ -64,3 +64,5 @@ input[type=file]{font:14px "Public Sans",sans-serif;max-width:100%}
 .hint:empty{display:none}
 .card ol.plan{padding-left:20px;margin:6px 0 10px}
 .chip.warn{border-color:var(--con);color:var(--con)}
+.sbs{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:8px 0}
+.sbs>div{border:1px solid var(--bd);border-radius:6px;padding:8px 10px;background:var(--card)}

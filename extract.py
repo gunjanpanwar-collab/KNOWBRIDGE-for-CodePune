@@ -8,6 +8,7 @@ import re
 import time
 from pathlib import Path
 
+from conflicts import find_conflicts
 from verify import verify_claim
 
 BASE = Path(__file__).resolve().parent
@@ -20,6 +21,10 @@ Return ONLY a JSON array. Each item must have exactly these keys:
   "kind": "fact" for something the sources state, or "gap" for something expected but missing
           (a task with no owner, a decision or revert with no recorded reason, an unresolved issue)
   "statement": one short sentence in plain English
+  "subject": for a claim that states ONE checkable fact (a deadline, an owner, a status, a count), a short
+             noun phrase saying what it is about, such as "Razorpay switch deadline". Use EXACTLY the same
+             wording for the same thing every time it appears, in any file. Otherwise use "".
+  "value": the value only, such as "30 September" or "Karan". Otherwise use "".
   "evidence": a list of {"source": "<exact filename>", "quote": "<text copied from that file>"}
 
 Rules:
@@ -27,6 +32,7 @@ Rules:
 - Use short quotes (one line or one sentence). Every claim needs at least one quote.
 - Do not invent anything. If you are unsure, leave the claim out.
 - Never put passwords, API keys or phone numbers in a statement or quote.
+- If two files give different values for the same subject, include one claim per file so the difference can be detected. Do not decide which is right.
 - Prefer 10 to 25 useful claims over a long list.
 
 SOURCES:
@@ -101,7 +107,8 @@ def run_extraction(conn, proposer=None):
 
     texts = {name: s["full_text"] for name, s in sources.items()}
     conn.execute("DELETE FROM claims")
-    counts = {"verified": 0, "inferred": 0, "missing": 0, "dropped": 0}
+    counts = {"verified": 0, "inferred": 0, "missing": 0, "conflicting": 0, "dropped": 0}
+    inserted = []
     for item in proposed:
         if not isinstance(item, dict):
             counts["dropped"] += 1
@@ -115,8 +122,11 @@ def run_extraction(conn, proposer=None):
         if status is None:  # no usable evidence: drop it, never show an unsupported claim
             counts["dropped"] += 1
             continue
-        cur = conn.execute("INSERT INTO claims (type, text, status) VALUES (?,?,?)",
-                           (ctype, statement, status))
+        subject = str(item.get("subject") or "").strip()[:120]
+        value = str(item.get("value") or "").strip()[:120]
+        cur = conn.execute("INSERT INTO claims (type, text, status, subject, value) VALUES (?,?,?,?,?)",
+                           (ctype, statement, status, subject, value))
+        inserted.append({"id": cur.lastrowid, "status": status, "subject": subject, "value": value})
         for ev in checked:
             sid = sources[ev["source"]]["id"]
             chunk = None
@@ -130,4 +140,13 @@ def run_extraction(conn, proposer=None):
                 " VALUES (?,?,?,?,?,?)",
                 (cur.lastrowid, sid, ev["quote"], ev["position"], chunk, 1 if ev["found"] else 0))
         counts[status] += 1
+
+    # Conflict check (plain code): only claims whose quotes were verified take part.
+    candidates = [x for x in inserted if x["status"] == "verified" and x["subject"] and x["value"]]
+    for gid, group in enumerate(find_conflicts(candidates), start=1):
+        for i in group:
+            conn.execute("UPDATE claims SET status='conflicting', conflict_group=? WHERE id=?",
+                         (gid, candidates[i]["id"]))
+            counts["verified"] -= 1
+            counts["conflicting"] += 1
     return {"ok": True, "mode": mode, "note": note, **counts}

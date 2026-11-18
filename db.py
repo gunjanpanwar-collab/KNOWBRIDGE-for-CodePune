@@ -26,7 +26,8 @@ CREATE TABLE IF NOT EXISTS chunks (
     idx INTEGER NOT NULL, start INTEGER NOT NULL, text TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS claims (
     id INTEGER PRIMARY KEY, type TEXT NOT NULL, text TEXT NOT NULL,
-    status TEXT NOT NULL, review_state TEXT NOT NULL DEFAULT 'pending');
+    status TEXT NOT NULL, review_state TEXT NOT NULL DEFAULT 'pending',
+    subject TEXT, value TEXT, conflict_group INTEGER);
 CREATE TABLE IF NOT EXISTS evidence (
     id INTEGER PRIMARY KEY, claim_id INTEGER NOT NULL REFERENCES claims(id) ON DELETE CASCADE,
     source_id INTEGER NOT NULL REFERENCES sources(id) ON DELETE CASCADE,
@@ -56,6 +57,10 @@ def init_db():
         cols = [r["name"] for r in conn.execute("PRAGMA table_info(sources)")]
         if "redactions" not in cols:  # databases created before Round 3
             conn.execute("ALTER TABLE sources ADD COLUMN redactions TEXT")
+        ccols = [r["name"] for r in conn.execute("PRAGMA table_info(claims)")]
+        for col, kind in (("subject", "TEXT"), ("value", "TEXT"), ("conflict_group", "INTEGER")):
+            if col not in ccols:  # databases created before conflict detection
+                conn.execute(f"ALTER TABLE claims ADD COLUMN {col} {kind}")
         redact_existing(conn)
         if conn.execute("SELECT COUNT(*) FROM users").fetchone()[0] == 0:
             conn.executemany(
