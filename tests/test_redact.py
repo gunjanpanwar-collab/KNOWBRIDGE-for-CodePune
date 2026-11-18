@@ -39,7 +39,7 @@ class Masking(unittest.TestCase):
         self.assertNotIn("hunter2", out)
 
     def test_known_token_formats_without_a_label(self):
-        out, c = redact("paste this: AIzaSyA1234567890abcdefghijklmnopqrstuv and sk-abcdefghijklmnop1234")
+        
         self.assertNotIn("AIza", out)
         self.assertNotIn("sk-abcdef", out)
         self.assertEqual(c["key"], 2)
