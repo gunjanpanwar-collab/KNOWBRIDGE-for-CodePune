@@ -12,7 +12,7 @@
 <body>
 <header>
   <h1>KNOWBRIDGE</h1>
-  <p>Turns a project’s files into evidence-linked claims. The AI proposes, code checks every quote, a reviewer approves, and each person sees only what their role may open. Demo data is invented.</p>
+  <p>Keep a project’s knowledge when someone leaves. Demo data is invented.</p>
   <div class="bar" id="loginBar">
     <label for="roleSel">Sign in as</label>
     <select id="roleSel">
@@ -28,10 +28,23 @@
 </header>
 
 <main>
-  <div id="welcome" class="card"><b>Sign in to start.</b> <span class="muted">Pick a demo role above. The Reviewer uploads sources, runs extraction and approves claims. The other two roles open the handover.</span></div>
+  <div id="welcome" class="card">
+    <h2>What is KNOWBRIDGE?</h2>
+    <p>When someone leaves a project or club, much of what they knew leaves with them: why decisions were made, who owns what, and what is unfinished. KNOWBRIDGE reads the project’s files, lists the important points, shows the exact line each point came from as proof, lets a reviewer approve them, and shows the next person only what their role may see.</p>
+    <h3>Try it in 4 steps</h3>
+    <ol class="plan">
+      <li>Click <b>Start the demo</b>. You are signed in as the Reviewer.</li>
+      <li>Click <b>Load demo data</b>, then <b>Extract claims</b>.</li>
+      <li>Open <b>Review</b>, click any point to see its proof, then click <b>Approve all verified</b>.</li>
+      <li>Click <b>Sign out</b>, sign in as <b>Incoming non-technical member</b> and open <b>Handover</b>. The “Restricted” boxes are on purpose.</li>
+    </ol>
+    <div class="formrow"><button class="b p" id="startDemo">Start the demo</button>
+    <span class="note">All data is invented. Passwords, API keys and phone numbers in uploaded files are masked automatically.</span></div>
+  </div>
 
   <section id="s0">
     <h2>Sources</h2>
+    <div class="hint" id="hint0"></div>
     <p class="muted">Each source lists which roles may open it. A claim is hidden from anyone who cannot open every source behind it.</p>
     <div class="card wrapx"><table id="srcTable"></table></div>
 
@@ -57,6 +70,7 @@
 
   <section id="s1">
     <h2>Review claims</h2>
+    <div class="hint" id="hint1"></div>
     <p class="muted">Select a claim to see the exact quote behind it. Only approved claims reach the handover.</p>
     <div class="sum" id="sum"></div>
     <div class="formrow"><button class="b" id="apprAll">Approve all verified</button></div>
@@ -68,6 +82,7 @@
 
   <section id="s2">
     <h2>Handover</h2>
+    <div class="hint" id="hint2"></div>
     <p class="muted" id="handSub"></p>
     <div id="hand"></div>
   </section>

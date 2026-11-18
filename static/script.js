@@ -31,6 +31,7 @@ async function go(i) {
   tab = i; renderTabs();
   ['s0', 's1', 's2'].forEach(id => $('#' + id).classList.toggle('on', id === sectionIds()[i]));
   const id = sectionIds()[i];
+  showHint(id);
   if (id === 's0') await loadSources();
   if (id === 's1') await loadClaims();
   if (id === 's2') await loadHandover();
@@ -53,16 +54,32 @@ $('#loginBtn').onclick = async () => {
   if (!r.ok) return toast(r.data.error || 'Sign-in failed.');
   tab = 0; refreshMe();
 };
+$('#startDemo').onclick = async () => {
+  const r = await api('/api/login', {json: {role: 'reviewer'}});
+  if (!r.ok) return toast(r.data.error || 'Could not start the demo.');
+  tab = 0; refreshMe();
+};
 $('#logoutBtn').onclick = async () => { await api('/api/logout', {method: 'POST'}); me = null; claims = []; sel = null; $('#extractMsg').innerHTML = ''; refreshMe(); };
 
 // ---------- Sources ----------
+const MASK_NAMES = {secret: ['secret', 'secrets'], key: ['API key', 'API keys'], phone: ['phone number', 'phone numbers']};
+function maskedText(m) {
+  const parts = Object.keys(MASK_NAMES).filter(k => m && m[k]).map(k => `${m[k]} ${MASK_NAMES[k][m[k] === 1 ? 0 : 1]}`);
+  return parts.length ? `<span class="chip warn">${esc(parts.join(', '))} masked</span>` : '<span class="note">None found</span>';
+}
+const HINTS = {
+  s0: r => r === 'reviewer' ? 'Step 1 of 3: load the demo data (or upload a file), then click Extract claims.' : 'These are the sources your role may open. Others are hidden from you on purpose.',
+  s1: () => 'Step 2 of 3: click a point to see its proof, then Approve. Only approved points reach the handover.',
+  s2: r => r === 'reviewer' ? 'Step 3 of 3: sign out and sign in as an Incoming role to see what that person may see.' : 'This is your handover. Items marked Restricted are hidden from your role on purpose.'
+};
+function showHint(id) { const el = $('#hint' + id.slice(1)); if (el) el.textContent = HINTS[id](me); }
 async function loadSources() {
   const r = await api('/api/sources');
   if (!r.ok) return toast(r.data.error || 'Could not load sources.');
   const rows = r.data.sources;
-  $('#srcTable').innerHTML = '<tr><th>Source</th><th>Size</th><th>Chunks</th><th>Who can open it</th></tr>' +
-    (rows.length ? rows.map(s => `<tr><td>${esc(s.filename)}</td><td>${s.size} chars</td><td>${s.chunks}</td><td>${s.roles.map(x => `<span class="chip">${ROLE[x]}</span>`).join(' ')}</td></tr>`).join('')
-                 : '<tr><td colspan="4" class="muted">No sources yet. Reviewers can upload files or load the demo data.</td></tr>');
+  $('#srcTable').innerHTML = '<tr><th>Source</th><th>Size</th><th>Chunks</th><th>Masked</th><th>Who can open it</th></tr>' +
+    (rows.length ? rows.map(s => `<tr><td>${esc(s.filename)}</td><td>${s.size} chars</td><td>${s.chunks}</td><td>${maskedText(s.masked)}</td><td>${s.roles.map(x => `<span class="chip">${ROLE[x]}</span>`).join(' ')}</td></tr>`).join('')
+                 : '<tr><td colspan="5" class="muted">No sources yet. Reviewers can upload files or load the demo data.</td></tr>');
 }
 $('#uploadBtn').onclick = async () => {
   const f = $('#fileIn').files[0];

@@ -60,3 +60,7 @@ input[type=file]{font:14px "Public Sans",sans-serif;max-width:100%}
 .banner.ok{border-left-color:var(--ok);background:var(--okbg)}
 .plan li{margin:3px 0}
 .hidden{display:none !important}
+.hint{background:var(--okbg);border-left:5px solid var(--acc);border-radius:6px;padding:8px 12px;margin:0 0 12px;font-size:14px}
+.hint:empty{display:none}
+.card ol.plan{padding-left:20px;margin:6px 0 10px}
+.chip.warn{border-color:var(--con);color:var(--con)}

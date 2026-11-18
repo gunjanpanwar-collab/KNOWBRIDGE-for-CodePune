@@ -124,12 +124,13 @@ def list_sources():
     role = current_role()
     with db.get_db() as conn:
         out = []
-        for s in conn.execute("SELECT id, filename, source_type, allowed_roles, LENGTH(full_text) AS size FROM sources ORDER BY id"):
+        for s in conn.execute("SELECT id, filename, source_type, allowed_roles, redactions, LENGTH(full_text) AS size FROM sources ORDER BY id"):
             allowed = json.loads(s["allowed_roles"])
             if role == "reviewer" or can_open(role, allowed):
                 chunks = conn.execute("SELECT COUNT(*) FROM chunks WHERE source_id=?", (s["id"],)).fetchone()[0]
                 out.append({"id": s["id"], "filename": s["filename"], "type": s["source_type"],
-                            "size": s["size"], "chunks": chunks, "roles": allowed})
+                            "size": s["size"], "chunks": chunks, "roles": allowed,
+                            "masked": json.loads(s["redactions"] or "{}")})
     return jsonify(sources=out)
 
 

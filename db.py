@@ -4,6 +4,8 @@ import os
 import sqlite3
 from pathlib import Path
 
+from redact import redact
+
 BASE = Path(__file__).resolve().parent
 DB_PATH = os.environ.get("DB_PATH", str(BASE / "knowbridge.db"))
 
@@ -18,7 +20,7 @@ CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY, name TEXT NOT NULL, role TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS sources (
     id INTEGER PRIMARY KEY, filename TEXT NOT NULL, source_type TEXT,
-    full_text TEXT NOT NULL, allowed_roles TEXT NOT NULL);
+    full_text TEXT NOT NULL, allowed_roles TEXT NOT NULL, redactions TEXT);
 CREATE TABLE IF NOT EXISTS chunks (
     id INTEGER PRIMARY KEY, source_id INTEGER NOT NULL REFERENCES sources(id) ON DELETE CASCADE,
     idx INTEGER NOT NULL, start INTEGER NOT NULL, text TEXT NOT NULL);
@@ -51,6 +53,10 @@ def get_db():
 def init_db():
     with get_db() as conn:
         conn.executescript(SCHEMA)
+        cols = [r["name"] for r in conn.execute("PRAGMA table_info(sources)")]
+        if "redactions" not in cols:  # databases created before Round 3
+            conn.execute("ALTER TABLE sources ADD COLUMN redactions TEXT")
+        redact_existing(conn)
         if conn.execute("SELECT COUNT(*) FROM users").fetchone()[0] == 0:
             conn.executemany(
                 "INSERT INTO users (name, role) VALUES (?, ?)",
@@ -73,12 +79,30 @@ def chunk_text(text, size=1200):
     return chunks or [(0, 0, text)]
 
 
+def redact_existing(conn):
+    """Safety net: mask any source stored before masking existed, rebuild its chunks,
+    and clear old claims (their quotes may no longer match the masked text)."""
+    changed = False
+    for r in conn.execute("SELECT id, full_text FROM sources WHERE redactions IS NULL").fetchall():
+        text, counts = redact(r["full_text"])
+        conn.execute("UPDATE sources SET full_text=?, redactions=? WHERE id=?",
+                     (text, json.dumps(counts), r["id"]))
+        conn.execute("DELETE FROM chunks WHERE source_id=?", (r["id"],))
+        for idx, start, chunk in chunk_text(text):
+            conn.execute("INSERT INTO chunks (source_id, idx, start, text) VALUES (?,?,?,?)",
+                         (r["id"], idx, start, chunk))
+        changed = True
+    if changed:
+        conn.execute("DELETE FROM claims")
+
+
 def add_source(conn, filename, text, roles):
     roles = sorted(set(roles) | {"reviewer"})  # reviewer can always open every source
+    text, counts = redact(text)  # mask secrets and phone numbers BEFORE storing
     ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "txt"
     cur = conn.execute(
-        "INSERT INTO sources (filename, source_type, full_text, allowed_roles) VALUES (?,?,?,?)",
-        (filename, ext, text, json.dumps(roles)),
+        "INSERT INTO sources (filename, source_type, full_text, allowed_roles, redactions) VALUES (?,?,?,?,?)",
+        (filename, ext, text, json.dumps(roles), json.dumps(counts)),
     )
     sid = cur.lastrowid
     for idx, start, chunk in chunk_text(text):
