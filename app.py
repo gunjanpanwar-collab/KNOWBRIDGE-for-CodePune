@@ -14,6 +14,9 @@ from extract import run_extraction  # noqa: E402
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 app.secret_key = os.environ.get("SECRET_KEY", "dev-only-change-me")
 app.config["MAX_CONTENT_LENGTH"] = 300 * 1024  # 300 KB per upload
+from knowbridge_extras import init_app
+init_app(app)
+
 
 ALLOWED_EXT = {"txt", "md", "csv", "json"}
 
